@@ -83,9 +83,18 @@ describe('validateRenderRequest', () => {
     }
   });
 
-  it('clamps a skill level instead of refusing the document', () => {
-    const r = validateRenderRequest(ok({ skills: [{ name: 'x', level: 99 }, { name: 'y', level: 'high' }] }));
-    assert.deepEqual(r.snapshot.resumeData.skills.map((s) => s.level), [5, 0]);
+  it('keeps a skill level as the 0–100 percentage the editor uses', () => {
+    // Regression: levels were once clamped to 0–5, which drew every skill bar
+    // in the PDF as a sliver while the preview showed it full.
+    const r = validateRenderRequest(ok({ skills: [{ name: 'a', level: 95 }, { name: 'b', level: 80 }] }));
+    assert.deepEqual(r.snapshot.resumeData.skills.map((s) => s.level), [95, 80]);
+  });
+
+  it('clamps an out-of-range skill level instead of refusing the document', () => {
+    const r = validateRenderRequest(
+      ok({ skills: [{ name: 'x', level: 140 }, { name: 'y', level: -3 }, { name: 'z', level: 'high' }] }),
+    );
+    assert.deepEqual(r.snapshot.resumeData.skills.map((s) => s.level), [100, 0, 0]);
   });
 
   it('drops fields it does not know rather than passing them to the page', () => {

@@ -119,9 +119,10 @@ function skill(s, i) {
   return {
     id: str(x.id, `${at}.id`, LIMITS.shortText),
     name: str(x.name, `${at}.name`, LIMITS.shortText),
-    // Clamped rather than rejected: an out-of-range level is a cosmetic
-    // problem in a meter, not a reason to refuse the whole document.
-    level: Number.isFinite(level) ? Math.min(5, Math.max(0, Math.round(level))) : 0,
+    // A percentage: the editor's slider runs 0–100 and templates draw it as a
+    // bar width. Clamped rather than rejected: an out-of-range level is a
+    // cosmetic problem in a meter, not a reason to refuse the whole document.
+    level: Number.isFinite(level) ? Math.min(100, Math.max(0, Math.round(level))) : 0,
   };
 }
 

@@ -1,9 +1,7 @@
-import { expect, test, type Page } from '@playwright/test';
-import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
-import { PDF_EXPORT_STORAGE_KEY } from '../src/constants/pdfExport';
+import { expect, test } from '@playwright/test';
 import { templates } from '../src/templates/registry';
-import type { ResumeData, Template } from '../src/types/resume';
 import { longResume, longResumeMarkers, shortResume } from './fixtures/resumes';
+import { readPdf, renderPdf, squash } from './pdf';
 
 /**
  * Every template paginates, and nothing the user typed is lost.
@@ -17,42 +15,6 @@ import { longResume, longResumeMarkers, shortResume } from './fixtures/resumes';
  * The template list comes from the registry, so a new template is covered the
  * moment it is registered.
  */
-
-async function renderPdf(page: Page, template: Template, resumeData: ResumeData) {
-  await page.addInitScript(
-    ({ key, data }) => window.sessionStorage.setItem(key, JSON.stringify(data)),
-    { key: PDF_EXPORT_STORAGE_KEY, data: { selectedTemplate: template, resumeData } },
-  );
-  await page.setViewportSize({ width: 794, height: 1123 });
-  await page.goto('/print');
-  await page.waitForSelector('[data-print-ready="true"]');
-  // Must match pdf-service/lib/renderer.mjs. If these drift, this test checks
-  // a different PDF from the one users download.
-  return page.pdf({
-    preferCSSPageSize: true,
-    printBackground: true,
-    format: 'A4',
-    margin: { top: '0', right: '0', bottom: '0', left: '0' },
-  });
-}
-
-async function readPdf(bytes: Buffer) {
-  const doc = await getDocument({ data: new Uint8Array(bytes), useSystemFonts: false }).promise;
-  const pages: string[] = [];
-  for (let i = 1; i <= doc.numPages; i++) {
-    const content = await (await doc.getPage(i)).getTextContent();
-    pages.push(content.items.map((it) => ('str' in it ? it.str : '')).join(' '));
-  }
-  return { pageCount: doc.numPages, text: squash(pages.join(' ')), pages };
-}
-
-/**
- * Text compared without whitespace or case. Templates set headings and names
- * in letter-spaced capitals, and the PDF's text layer then holds "S A M L E E"
- * for "Sam Lee": the words are on the page, only spaced. Matching on the
- * squashed form tests what the reader sees, not how the glyphs were laid out.
- */
-const squash = (s: string) => s.replace(/\s+/g, '').toUpperCase();
 
 test.describe('pagination', () => {
   for (const template of templates) {
