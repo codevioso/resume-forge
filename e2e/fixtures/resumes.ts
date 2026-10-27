@@ -57,7 +57,7 @@ export const longResume: ResumeData = {
   skills: Array.from({ length: 16 }, (_, i) => ({
     id: `s${i}`,
     name: mark('SKL', i),
-    level: (i % 5) + 1,
+    level: 40 + ((i * 7) % 60),
   })),
   projects: Array.from({ length: 4 }, (_, i) => ({
     id: `p${i}`,
@@ -102,7 +102,132 @@ export const shortResume: ResumeData = {
     },
   ],
   education: [],
-  skills: [{ id: 's0', name: 'Figma', level: 4 }],
+  skills: [{ id: 's0', name: 'Figma', level: 80 }],
   projects: [],
   customFields: [],
 };
+
+/**
+ * Every field the editor collects, each holding a unique marker. A template
+ * passes the field test only if every marker reaches the PDF's text.
+ *
+ * This checks which fields print, not pagination. No text here may contain
+ * "present", since the current job is checked by its "Present" label.
+ */
+export const fullResume: ResumeData = {
+  personalInfo: {
+    fullName: 'Morgan Reyes',
+    title: 'MKTITLE Engineer',
+    email: 'mkemail@example.com',
+    phone: '+351 912 345 678',
+    location: 'MKLOCATION, Lisbon',
+    linkedin: 'linkedin.com/in/mklinkedin',
+    website: 'mkwebsite.dev',
+    photo: '',
+    summary: 'MKSUMMARY Builds data platforms.',
+  },
+  experiences: [
+    {
+      id: 'e0',
+      position: 'MKPOSA Lead',
+      company: 'MKCOMPA Labs',
+      startDate: 'MKSTARTA',
+      endDate: '',
+      current: true,
+      description: 'MKDESCA Owned the ingestion pipeline.',
+    },
+    {
+      id: 'e1',
+      position: 'MKPOSB Engineer',
+      company: 'MKCOMPB Corp',
+      startDate: 'MKSTARTB',
+      endDate: 'MKENDB',
+      current: false,
+      description: 'MKDESCB Shipped the billing service.',
+    },
+  ],
+  education: [
+    { id: 'd0', institution: 'MKINSTA University', degree: 'MKDEGA', field: 'MKFIELDA', startDate: 'MKESTARTA', endDate: 'MKEENDA', gpa: 'MKGPAA' },
+    { id: 'd1', institution: 'MKINSTB College', degree: 'MKDEGB', field: 'MKFIELDB', startDate: 'MKESTARTB', endDate: 'MKEENDB', gpa: 'MKGPAB' },
+  ],
+  skills: [
+    { id: 's0', name: 'MKSKILLA', level: 90 },
+    { id: 's1', name: 'MKSKILLB', level: 70 },
+    { id: 's2', name: 'MKSKILLC', level: 50 },
+  ],
+  projects: [
+    { id: 'p0', name: 'MKPROJA', description: 'MKPDESCA Streams events.', link: 'github.com/mk/mkplinka', technologies: 'MKTECHA, Go' },
+    { id: 'p1', name: 'MKPROJB', description: 'MKPDESCB Schedules jobs.', link: 'https://mkplinkb.dev', technologies: 'MKTECHB' },
+  ],
+  customFields: [
+    {
+      id: 'c0',
+      sectionTitle: 'MKSECTION Awards',
+      items: [
+        { id: 'c0a', title: 'MKCTITLEA', subtitle: 'MKCSUBA', description: 'MKCDESCA Recognised for reliability work.' },
+        { id: 'c0b', title: 'MKCTITLEB', subtitle: 'MKCSUBB', description: 'MKCDESCB Speaker at a regional meetup.' },
+      ],
+    },
+  ],
+};
+
+/** Field → text that must appear in the PDF when that field is filled in. */
+export const fullResumeExpectations: Record<string, string> = {
+  'personalInfo.fullName': 'Morgan Reyes',
+  'personalInfo.title': 'MKTITLE',
+  'personalInfo.email': 'mkemail@example.com',
+  'personalInfo.phone': '+351 912 345 678',
+  'personalInfo.location': 'MKLOCATION',
+  'personalInfo.linkedin': 'linkedin.com/in/mklinkedin',
+  'personalInfo.website': 'mkwebsite.dev',
+  'personalInfo.summary': 'MKSUMMARY',
+  'experiences[0].position': 'MKPOSA',
+  'experiences[0].company': 'MKCOMPA',
+  'experiences[0].startDate': 'MKSTARTA',
+  'experiences[0].current → "Present"': 'Present',
+  'experiences[0].description': 'MKDESCA',
+  'experiences[1].position': 'MKPOSB',
+  'experiences[1].company': 'MKCOMPB',
+  'experiences[1].startDate': 'MKSTARTB',
+  'experiences[1].endDate': 'MKENDB',
+  'experiences[1].description': 'MKDESCB',
+  'education[0].institution': 'MKINSTA',
+  'education[0].degree': 'MKDEGA',
+  'education[0].field': 'MKFIELDA',
+  'education[0].startDate': 'MKESTARTA',
+  'education[0].endDate': 'MKEENDA',
+  'education[0].gpa': 'MKGPAA',
+  'education[1].institution': 'MKINSTB',
+  'education[1].degree': 'MKDEGB',
+  'education[1].field': 'MKFIELDB',
+  'education[1].startDate': 'MKESTARTB',
+  'education[1].endDate': 'MKEENDB',
+  'education[1].gpa': 'MKGPAB',
+  'skills[0].name': 'MKSKILLA',
+  'skills[2].name': 'MKSKILLC',
+  'projects[0].name': 'MKPROJA',
+  'projects[0].description': 'MKPDESCA',
+  'projects[0].link': 'github.com/mk/mkplinka',
+  'projects[0].technologies': 'MKTECHA',
+  'projects[1].name': 'MKPROJB',
+  'projects[1].description': 'MKPDESCB',
+  'projects[1].link': 'mkplinkb.dev',
+  'projects[1].technologies': 'MKTECHB',
+  'customFields[0].sectionTitle': 'MKSECTION',
+  'customFields[0].items[0].title': 'MKCTITLEA',
+  'customFields[0].items[0].subtitle': 'MKCSUBA',
+  'customFields[0].items[0].description': 'MKCDESCA',
+  'customFields[0].items[1].title': 'MKCTITLEB',
+  'customFields[0].items[1].subtitle': 'MKCSUBB',
+  'customFields[0].items[1].description': 'MKCDESCB',
+};
+
+/** Link targets the PDF must contain: contact details and project links are clickable. */
+export const fullResumeLinks = [
+  'mailto:mkemail@example.com',
+  'tel:+351912345678',
+  'https://linkedin.com/in/mklinkedin',
+  'https://mkwebsite.dev',
+  'https://github.com/mk/mkplinka',
+  'https://mkplinkb.dev',
+];

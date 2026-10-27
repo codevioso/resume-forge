@@ -1,4 +1,5 @@
 import { useResume } from '../../context/ResumeContext';
+import { ContactLink, dateRange, degreeLine, gpaText, joinParts } from '../fields';
 import { templateFonts } from '../fonts';
 import { keepTogether, keepWithNext, pageRoot, repeatPadding } from '../paging';
 
@@ -30,10 +31,27 @@ export function ExecutiveTemplate() {
           <p style={{ fontSize: '14px', color: '#374151', fontWeight: 500, margin: 0 }}>{personalInfo.title || 'Professional Title'}</p>
         </div>
         <div style={{ textAlign: 'right', fontSize: '10px', color: '#4b5563', lineHeight: '1.8' }}>
-          {personalInfo.email && <div>{personalInfo.email}</div>}
-          {personalInfo.phone && <div>{personalInfo.phone}</div>}
+          {personalInfo.email && (
+            <div>
+              <ContactLink kind="email" value={personalInfo.email} />
+            </div>
+          )}
+          {personalInfo.phone && (
+            <div>
+              <ContactLink kind="phone" value={personalInfo.phone} />
+            </div>
+          )}
           {personalInfo.location && <div>{personalInfo.location}</div>}
-          {personalInfo.linkedin && <div>{personalInfo.linkedin}</div>}
+          {personalInfo.linkedin && (
+            <div>
+              <ContactLink kind="url" value={personalInfo.linkedin} />
+            </div>
+          )}
+          {personalInfo.website && (
+            <div>
+              <ContactLink kind="url" value={personalInfo.website} />
+            </div>
+          )}
         </div>
       </div>
       {personalInfo.summary && (
@@ -49,11 +67,13 @@ export function ExecutiveTemplate() {
             <div key={exp.id} style={{ ...keepTogether, marginBottom: index === experiences.length - 1 ? 0 : '14px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                 <h3 style={{ fontSize: '13px', fontWeight: 700, color: '#111827', margin: 0 }}>{exp.position}</h3>
-                <span style={{ fontSize: '10px', color: '#6b7280' }}>
-                  {exp.startDate} - {exp.current ? 'Present' : exp.endDate}
-                </span>
+                {dateRange(exp.startDate, exp.endDate, exp.current) && (
+                  <span style={{ fontSize: '10px', color: '#6b7280', whiteSpace: 'nowrap', marginLeft: '12px' }}>
+                    {dateRange(exp.startDate, exp.endDate, exp.current)}
+                  </span>
+                )}
               </div>
-              <p style={{ fontSize: '11px', color: '#0f766e', fontWeight: 600, margin: '3px 0 0 0' }}>{exp.company}</p>
+              {exp.company && <p style={{ fontSize: '11px', color: '#0f766e', fontWeight: 600, margin: '3px 0 0 0' }}>{exp.company}</p>}
               {exp.description && <p style={{ fontSize: '10px', color: '#4b5563', lineHeight: '1.6', margin: '6px 0 0 0' }}>{exp.description}</p>}
             </div>
           ))}
@@ -66,13 +86,12 @@ export function ExecutiveTemplate() {
             {education.map((edu, index) => (
               <div key={edu.id} style={{ ...keepTogether, marginBottom: index === education.length - 1 ? 0 : '12px' }}>
                 <h3 style={{ fontSize: '11px', fontWeight: 700, color: '#111827', margin: 0 }}>{edu.institution}</h3>
-                <p style={{ fontSize: '10px', color: '#374151', margin: '2px 0 0 0' }}>
-                  {edu.degree}
-                  {edu.field && ` in ${edu.field}`}
-                </p>
-                <p style={{ fontSize: '9px', color: '#6b7280', margin: '2px 0 0 0' }}>
-                  {edu.startDate} - {edu.endDate}
-                </p>
+                {degreeLine(edu) && <p style={{ fontSize: '10px', color: '#374151', margin: '2px 0 0 0' }}>{degreeLine(edu)}</p>}
+                {joinParts([dateRange(edu.startDate, edu.endDate), gpaText(edu.gpa)]) && (
+                  <p style={{ fontSize: '9px', color: '#6b7280', margin: '2px 0 0 0' }}>
+                    {joinParts([dateRange(edu.startDate, edu.endDate), gpaText(edu.gpa)])}
+                  </p>
+                )}
               </div>
             ))}
           </div>
@@ -96,7 +115,14 @@ export function ExecutiveTemplate() {
           <h2 style={{ ...keepWithNext, fontSize: '12px', fontWeight: 700, color: '#0f766e', margin: '0 0 12px 0', borderBottom: '1px solid #d1d5db', paddingBottom: '4px' }}>KEY PROJECTS</h2>
           {projects.map((project, index) => (
             <div key={project.id} style={{ ...keepTogether, marginBottom: index === projects.length - 1 ? 0 : '12px' }}>
-              <h3 style={{ fontSize: '11px', fontWeight: 700, color: '#111827', margin: 0 }}>{project.name}</h3>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '12px' }}>
+                <h3 style={{ fontSize: '11px', fontWeight: 700, color: '#111827', margin: 0 }}>{project.name}</h3>
+                {project.link && (
+                  <span style={{ fontSize: '10px', color: '#6b7280', textAlign: 'right', wordBreak: 'break-all' }}>
+                    <ContactLink kind="url" value={project.link} />
+                  </span>
+                )}
+              </div>
               {project.technologies && <p style={{ fontSize: '9px', color: '#0f766e', margin: '2px 0 0 0' }}>Technologies: {project.technologies}</p>}
               {project.description && <p style={{ fontSize: '10px', color: '#4b5563', lineHeight: '1.5', margin: '4px 0 0 0' }}>{project.description}</p>}
             </div>

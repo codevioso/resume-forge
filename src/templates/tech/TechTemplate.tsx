@@ -1,4 +1,5 @@
 import { useResume } from '../../context/ResumeContext';
+import { ContactLink, dateRange, degreeLine, gpaText, joinParts } from '../fields';
 import { templateFonts } from '../fonts';
 import { PageBackdrop } from '../PageBackdrop';
 import { keepTogether, keepWithNext, pageRoot, repeatPadding } from '../paging';
@@ -43,12 +44,12 @@ export function TechTemplate() {
         <div style={{ fontSize: '9px', color: '#94a3b8', lineHeight: '2', textAlign: 'right' }}>
           {personalInfo.email && (
             <div>
-              <span style={{ color: '#06b6d4' }}>email:</span> {personalInfo.email}
+              <span style={{ color: '#06b6d4' }}>email:</span> <ContactLink kind="email" value={personalInfo.email} />
             </div>
           )}
           {personalInfo.phone && (
             <div>
-              <span style={{ color: '#06b6d4' }}>phone:</span> {personalInfo.phone}
+              <span style={{ color: '#06b6d4' }}>phone:</span> <ContactLink kind="phone" value={personalInfo.phone} />
             </div>
           )}
           {personalInfo.location && (
@@ -56,9 +57,14 @@ export function TechTemplate() {
               <span style={{ color: '#06b6d4' }}>location:</span> {personalInfo.location}
             </div>
           )}
+          {personalInfo.linkedin && (
+            <div>
+              <span style={{ color: '#06b6d4' }}>linkedin:</span> <ContactLink kind="url" value={personalInfo.linkedin} />
+            </div>
+          )}
           {personalInfo.website && (
             <div>
-              <span style={{ color: '#06b6d4' }}>web:</span> {personalInfo.website}
+              <span style={{ color: '#06b6d4' }}>web:</span> <ContactLink kind="url" value={personalInfo.website} />
             </div>
           )}
         </div>
@@ -102,11 +108,13 @@ export function TechTemplate() {
                     borderLeft: '3px solid #06b6d4',
                   }}
                 >
-                  <div style={{ fontSize: '10px', fontWeight: 600, color: '#f1f5f9', margin: 0 }}>{edu.degree}</div>
-                  <div style={{ fontSize: '9px', color: '#94a3b8', marginTop: '3px' }}>{edu.institution}</div>
-                  <div style={{ fontSize: '8px', color: '#64748b', marginTop: '4px' }}>
-                    {edu.startDate} - {edu.endDate}
-                  </div>
+                  {degreeLine(edu) && <div style={{ fontSize: '10px', fontWeight: 600, color: '#f1f5f9', margin: 0 }}>{degreeLine(edu)}</div>}
+                  {edu.institution && <div style={{ fontSize: '9px', color: '#94a3b8', marginTop: '3px' }}>{edu.institution}</div>}
+                  {joinParts([dateRange(edu.startDate, edu.endDate, false, ' → '), gpaText(edu.gpa)]) && (
+                    <div style={{ fontSize: '8px', color: '#64748b', marginTop: '4px' }}>
+                      {joinParts([dateRange(edu.startDate, edu.endDate, false, ' → '), gpaText(edu.gpa)])}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -153,18 +161,22 @@ export function TechTemplate() {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <div>
                       <h3 style={{ fontSize: '12px', fontWeight: 600, color: '#f1f5f9', margin: 0 }}>{exp.position}</h3>
-                      <p style={{ fontSize: '10px', color: '#06b6d4', margin: '3px 0 0 0' }}>{exp.company}</p>
+                      {exp.company && <p style={{ fontSize: '10px', color: '#06b6d4', margin: '3px 0 0 0' }}>{exp.company}</p>}
                     </div>
-                    <span
-                      style={{
-                        ...resumePillStyle({ preset: 'xs' }),
-                        color: '#64748b',
-                        backgroundColor: '#0f172a',
-                        borderRadius: '4px',
-                      }}
-                    >
-                      {exp.startDate} → {exp.current ? 'present' : exp.endDate}
-                    </span>
+                    {dateRange(exp.startDate, exp.current ? 'present' : exp.endDate, false, ' → ') && (
+                      <span
+                        style={{
+                          ...resumePillStyle({ preset: 'xs' }),
+                          flexShrink: 0,
+                          marginLeft: '12px',
+                          color: '#64748b',
+                          backgroundColor: '#0f172a',
+                          borderRadius: '4px',
+                        }}
+                      >
+                        {dateRange(exp.startDate, exp.current ? 'present' : exp.endDate, false, ' → ')}
+                      </span>
+                    )}
                   </div>
                   {exp.description && <p style={{ fontSize: '9px', color: '#94a3b8', marginTop: '10px', lineHeight: '1.6', margin: '10px 0 0 0' }}>{exp.description}</p>}
                 </div>
@@ -189,6 +201,11 @@ export function TechTemplate() {
                   >
                     <h3 style={{ fontSize: '10px', fontWeight: 600, color: '#f1f5f9', margin: 0 }}>{project.name}</h3>
                     {project.technologies && <p style={{ fontSize: '8px', color: '#06b6d4', margin: '4px 0 0 0' }}>[{project.technologies}]</p>}
+                    {project.link && (
+                      <p style={{ fontSize: '8px', color: '#64748b', margin: '4px 0 0 0', wordBreak: 'break-all' }}>
+                        <ContactLink kind="url" value={project.link} />
+                      </p>
+                    )}
                     {project.description && <p style={{ fontSize: '8px', color: '#94a3b8', marginTop: '6px', lineHeight: '1.5', margin: '6px 0 0 0' }}>{project.description}</p>}
                   </div>
                 ))}

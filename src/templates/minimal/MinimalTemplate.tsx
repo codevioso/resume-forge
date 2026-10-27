@@ -1,6 +1,24 @@
+import { Fragment, type CSSProperties, type ReactNode } from 'react';
 import { useResume } from '../../context/ResumeContext';
+import { ContactLink, dateRange, degreeLine, gpaText, joinParts } from '../fields';
 import { templateFonts } from '../fonts';
 import { keepTogether, keepWithNext, pageRoot, repeatPadding } from '../paging';
+
+/** One centred contact line, its items separated by bullets; nothing when every item is blank. */
+function ContactLine({ items, style }: { items: Array<ReactNode | false | '' | undefined>; style: CSSProperties }) {
+  const shown = items.filter(Boolean);
+  if (shown.length === 0) return null;
+  return (
+    <div style={style}>
+      {shown.map((item, i) => (
+        <Fragment key={i}>
+          {i > 0 && <span style={{ margin: '0 8px' }}>•</span>}
+          {item}
+        </Fragment>
+      ))}
+    </div>
+  );
+}
 
 export function MinimalTemplate() {
   const { resumeData } = useResume();
@@ -48,9 +66,21 @@ export function MinimalTemplate() {
         <p style={{ fontSize: '13px', color: '#6b7280', letterSpacing: '2px', margin: 0 }}>
           {(personalInfo.title || 'Professional Title').toUpperCase()}
         </p>
-        <div style={{ marginTop: '14px', fontSize: '10px', color: '#6b7280' }}>
-          {[personalInfo.email, personalInfo.phone, personalInfo.location].filter(Boolean).join('  •  ')}
-        </div>
+        <ContactLine
+          style={{ marginTop: '14px', fontSize: '10px', color: '#6b7280' }}
+          items={[
+            personalInfo.email && <ContactLink kind="email" value={personalInfo.email} />,
+            personalInfo.phone && <ContactLink kind="phone" value={personalInfo.phone} />,
+            personalInfo.location && <span>{personalInfo.location}</span>,
+          ]}
+        />
+        <ContactLine
+          style={{ marginTop: '4px', fontSize: '10px', color: '#6b7280' }}
+          items={[
+            personalInfo.linkedin && <ContactLink kind="url" value={personalInfo.linkedin} />,
+            personalInfo.website && <ContactLink kind="url" value={personalInfo.website} />,
+          ]}
+        />
       </div>
       {personalInfo.summary && (
         <div style={{ marginBottom: '28px', textAlign: 'center' }}>
@@ -68,11 +98,13 @@ export function MinimalTemplate() {
             <div key={exp.id} style={{ ...keepTogether, marginBottom: index === experiences.length - 1 ? 0 : '18px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                 <h3 style={{ fontSize: '13px', fontWeight: 600, color: '#111827', margin: 0 }}>{exp.position}</h3>
-                <span style={{ fontSize: '10px', color: '#9ca3af' }}>
-                  {exp.startDate} — {exp.current ? 'Present' : exp.endDate}
-                </span>
+                {dateRange(exp.startDate, exp.endDate, exp.current, ' — ') && (
+                  <span style={{ fontSize: '10px', color: '#9ca3af', whiteSpace: 'nowrap', marginLeft: '12px' }}>
+                    {dateRange(exp.startDate, exp.endDate, exp.current, ' — ')}
+                  </span>
+                )}
               </div>
-              <p style={{ fontSize: '11px', color: '#6b7280', margin: '4px 0 0 0' }}>{exp.company}</p>
+              {exp.company && <p style={{ fontSize: '11px', color: '#6b7280', margin: '4px 0 0 0' }}>{exp.company}</p>}
               {exp.description && <p style={{ fontSize: '10px', color: '#6b7280', lineHeight: '1.6', margin: '8px 0 0 0' }}>{exp.description}</p>}
             </div>
           ))}
@@ -85,13 +117,12 @@ export function MinimalTemplate() {
             {education.map((edu, index) => (
               <div key={edu.id} style={{ ...keepTogether, marginBottom: index === education.length - 1 ? 0 : '14px' }}>
                 <h3 style={{ fontSize: '12px', fontWeight: 600, color: '#111827', margin: 0 }}>{edu.institution}</h3>
-                <p style={{ fontSize: '10px', color: '#6b7280', margin: '3px 0 0 0' }}>
-                  {edu.degree}
-                  {edu.field && `, ${edu.field}`}
-                </p>
-                <p style={{ fontSize: '9px', color: '#9ca3af', margin: '2px 0 0 0' }}>
-                  {edu.startDate} — {edu.endDate}
-                </p>
+                {degreeLine(edu) && <p style={{ fontSize: '10px', color: '#6b7280', margin: '3px 0 0 0' }}>{degreeLine(edu)}</p>}
+                {joinParts([dateRange(edu.startDate, edu.endDate, false, ' — '), gpaText(edu.gpa)], ' • ') && (
+                  <p style={{ fontSize: '9px', color: '#9ca3af', margin: '2px 0 0 0' }}>
+                    {joinParts([dateRange(edu.startDate, edu.endDate, false, ' — '), gpaText(edu.gpa)], ' • ')}
+                  </p>
+                )}
               </div>
             ))}
           </div>
@@ -112,6 +143,11 @@ export function MinimalTemplate() {
                 <h3 style={{ fontSize: '11px', fontWeight: 600, color: '#111827', margin: 0 }}>{project.name}</h3>
                 {project.technologies && <p style={{ fontSize: '9px', color: '#9ca3af', margin: '3px 0 0 0' }}>{project.technologies}</p>}
                 {project.description && <p style={{ fontSize: '9px', color: '#6b7280', marginTop: '4px', lineHeight: '1.5', margin: '4px 0 0 0' }}>{project.description}</p>}
+                {project.link && (
+                  <p style={{ fontSize: '9px', color: '#9ca3af', margin: '4px 0 0 0', wordBreak: 'break-all' }}>
+                    <ContactLink kind="url" value={project.link} />
+                  </p>
+                )}
               </div>
             ))}
           </div>

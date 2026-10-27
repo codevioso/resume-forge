@@ -1,5 +1,6 @@
 import { A4_HEIGHT_PX } from '../../constants/layout';
 import { useResume } from '../../context/ResumeContext';
+import { ContactLink, dateRange, gpaText, joinParts } from '../fields';
 import { templateFonts } from '../fonts';
 import { PageBackdrop } from '../PageBackdrop';
 import { keepTogether, pageRoot, repeatPadding } from '../paging';
@@ -109,7 +110,7 @@ export function CreativeTemplate() {
                     color: '#be185d',
                   }}
                 >
-                  {personalInfo.email}
+                  <ContactLink kind="email" value={personalInfo.email} />
                 </span>
               )}
               {personalInfo.phone && (
@@ -121,7 +122,7 @@ export function CreativeTemplate() {
                     color: '#7c3aed',
                   }}
                 >
-                  {personalInfo.phone}
+                  <ContactLink kind="phone" value={personalInfo.phone} />
                 </span>
               )}
               {personalInfo.location && (
@@ -134,6 +135,32 @@ export function CreativeTemplate() {
                   }}
                 >
                   {personalInfo.location}
+                </span>
+              )}
+              {personalInfo.linkedin && (
+                <span
+                  style={{
+                    ...resumePillStyle({ preset: 'lg' }),
+                    maxWidth: '100%',
+                    backgroundColor: '#f0fdf4',
+                    borderRadius: '20px',
+                    color: '#15803d',
+                  }}
+                >
+                  <ContactLink kind="url" value={personalInfo.linkedin} />
+                </span>
+              )}
+              {personalInfo.website && (
+                <span
+                  style={{
+                    ...resumePillStyle({ preset: 'lg' }),
+                    maxWidth: '100%',
+                    backgroundColor: '#fefce8',
+                    borderRadius: '20px',
+                    color: '#a16207',
+                  }}
+                >
+                  <ContactLink kind="url" value={personalInfo.website} />
                 </span>
               )}
             </div>
@@ -224,12 +251,14 @@ export function CreativeTemplate() {
               </SectionTitleAccent>
               {education.map((edu, index) => (
                 <div key={edu.id} style={{ ...keepTogether, marginBottom: index === education.length - 1 ? 0 : '14px', padding: '12px', backgroundColor: '#faf5ff', borderRadius: '10px' }}>
-                  <div style={{ fontSize: '11px', fontWeight: 700, color: '#1f2937', margin: 0 }}>{edu.degree}</div>
+                  {edu.degree && <div style={{ fontSize: '11px', fontWeight: 700, color: '#1f2937', margin: 0 }}>{edu.degree}</div>}
                   {edu.field && <div style={{ fontSize: '9px', color: '#8b5cf6', marginTop: '2px', fontWeight: 500 }}>{edu.field}</div>}
-                  <div style={{ fontSize: '10px', color: '#6b7280', marginTop: '4px' }}>{edu.institution}</div>
-                  <div style={{ fontSize: '9px', color: '#9ca3af', marginTop: '3px' }}>
-                    {edu.startDate} - {edu.endDate}
-                  </div>
+                  {edu.institution && <div style={{ fontSize: '10px', color: '#6b7280', marginTop: '4px' }}>{edu.institution}</div>}
+                  {joinParts([dateRange(edu.startDate, edu.endDate), gpaText(edu.gpa)]) && (
+                    <div style={{ fontSize: '9px', color: '#9ca3af', marginTop: '3px' }}>
+                      {joinParts([dateRange(edu.startDate, edu.endDate), gpaText(edu.gpa)])}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -302,19 +331,23 @@ export function CreativeTemplate() {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
                     <div>
                       <h3 style={{ fontSize: '13px', fontWeight: 700, color: '#1f2937', margin: 0 }}>{exp.position}</h3>
-                      <p style={{ fontSize: '11px', color: '#8b5cf6', margin: '2px 0 0 0', fontWeight: 500 }}>{exp.company}</p>
+                      {exp.company && <p style={{ fontSize: '11px', color: '#8b5cf6', margin: '2px 0 0 0', fontWeight: 500 }}>{exp.company}</p>}
                     </div>
-                    <span
-                      style={{
-                        ...resumePillStyle({ preset: 'md' }),
-                        color: '#ffffff',
-                        backgroundColor: '#c026d3',
-                        borderRadius: '12px',
-                        fontWeight: 500,
-                      }}
-                    >
-                      {exp.startDate} - {exp.current ? 'Present' : exp.endDate}
-                    </span>
+                    {dateRange(exp.startDate, exp.endDate, exp.current) && (
+                      <span
+                        style={{
+                          ...resumePillStyle({ preset: 'md' }),
+                          flexShrink: 0,
+                          marginLeft: '12px',
+                          color: '#ffffff',
+                          backgroundColor: '#c026d3',
+                          borderRadius: '12px',
+                          fontWeight: 500,
+                        }}
+                      >
+                        {dateRange(exp.startDate, exp.endDate, exp.current)}
+                      </span>
+                    )}
                   </div>
                   {exp.description && <p style={{ fontSize: '10px', color: '#6b7280', marginTop: '8px', lineHeight: '1.6', margin: '8px 0 0 0' }}>{exp.description}</p>}
                 </div>
@@ -349,6 +382,11 @@ export function CreativeTemplate() {
                     <div key={project.id} style={{ ...keepTogether, width: 'calc(50% - 6px)', padding: '14px', backgroundColor: bgColors[idx % 3], borderRadius: '12px' }}>
                       <h3 style={{ fontSize: '11px', fontWeight: 700, color: '#1f2937', margin: 0 }}>{project.name}</h3>
                       {project.technologies && <p style={{ fontSize: '8px', color: '#8b5cf6', margin: '4px 0 0 0', fontWeight: 500 }}>{project.technologies}</p>}
+                      {project.link && (
+                        <p style={{ fontSize: '8px', color: '#6b7280', margin: '3px 0 0 0', wordBreak: 'break-all' }}>
+                          <ContactLink kind="url" value={project.link} />
+                        </p>
+                      )}
                       {project.description && <p style={{ fontSize: '9px', color: '#6b7280', marginTop: '6px', lineHeight: '1.5', margin: '6px 0 0 0' }}>{project.description}</p>}
                     </div>
                   );

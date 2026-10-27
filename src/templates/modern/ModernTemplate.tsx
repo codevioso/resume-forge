@@ -1,4 +1,5 @@
 import { useResume } from '../../context/ResumeContext';
+import { ContactLink, dateRange, gpaText, joinParts } from '../fields';
 import { templateFonts } from '../fonts';
 import { keepTogether, keepWithNext, pageRoot, repeatPadding } from '../paging';
 import { leftColumn, PageBackdrop } from '../PageBackdrop';
@@ -64,13 +65,15 @@ export function ModernTemplate() {
           {personalInfo.email && (
             <div style={{ fontSize: '10px', marginBottom: '10px', color: '#cbd5e1', lineHeight: '1.4' }}>
               <div style={{ color: '#94a3b8', marginBottom: '2px', fontSize: '9px' }}>Email</div>
-              <div style={{ wordBreak: 'break-all' }}>{personalInfo.email}</div>
+              <div style={{ wordBreak: 'break-all' }}>
+                <ContactLink kind="email" value={personalInfo.email} />
+              </div>
             </div>
           )}
           {personalInfo.phone && (
             <div style={{ fontSize: '10px', marginBottom: '10px', color: '#cbd5e1', lineHeight: '1.4' }}>
               <div style={{ color: '#94a3b8', marginBottom: '2px', fontSize: '9px' }}>Phone</div>
-              {personalInfo.phone}
+              <ContactLink kind="phone" value={personalInfo.phone} />
             </div>
           )}
           {personalInfo.location && (
@@ -82,13 +85,17 @@ export function ModernTemplate() {
           {personalInfo.linkedin && (
             <div style={{ fontSize: '10px', marginBottom: '10px', color: '#cbd5e1', lineHeight: '1.4' }}>
               <div style={{ color: '#94a3b8', marginBottom: '2px', fontSize: '9px' }}>LinkedIn</div>
-              <div style={{ wordBreak: 'break-all' }}>{personalInfo.linkedin}</div>
+              <div style={{ wordBreak: 'break-all' }}>
+                <ContactLink kind="url" value={personalInfo.linkedin} />
+              </div>
             </div>
           )}
           {personalInfo.website && (
             <div style={{ fontSize: '10px', color: '#cbd5e1', lineHeight: '1.4' }}>
               <div style={{ color: '#94a3b8', marginBottom: '2px', fontSize: '9px' }}>Website</div>
-              <div style={{ wordBreak: 'break-all' }}>{personalInfo.website}</div>
+              <div style={{ wordBreak: 'break-all' }}>
+                <ContactLink kind="url" value={personalInfo.website} />
+              </div>
             </div>
           )}
         </div>
@@ -139,14 +146,16 @@ export function ModernTemplate() {
             </h3>
             {education.map((edu, index) => (
               <div key={edu.id} style={{ ...keepTogether, marginBottom: index === education.length - 1 ? 0 : '14px' }}>
-                <div style={{ fontSize: '11px', fontWeight: 600, color: '#f1f5f9', margin: 0, lineHeight: '1.3' }}>
-                  {edu.degree}
-                </div>
+                {edu.degree && (
+                  <div style={{ fontSize: '11px', fontWeight: 600, color: '#f1f5f9', margin: 0, lineHeight: '1.3' }}>{edu.degree}</div>
+                )}
                 {edu.field && <div style={{ fontSize: '10px', color: '#94a3b8', marginTop: '2px' }}>{edu.field}</div>}
-                <div style={{ fontSize: '10px', color: '#cbd5e1', marginTop: '3px' }}>{edu.institution}</div>
-                <div style={{ fontSize: '9px', color: '#64748b', marginTop: '2px' }}>
-                  {edu.startDate} - {edu.endDate}
-                </div>
+                {edu.institution && <div style={{ fontSize: '10px', color: '#cbd5e1', marginTop: '3px' }}>{edu.institution}</div>}
+                {joinParts([dateRange(edu.startDate, edu.endDate), gpaText(edu.gpa)]) && (
+                  <div style={{ fontSize: '9px', color: '#64748b', marginTop: '2px' }}>
+                    {joinParts([dateRange(edu.startDate, edu.endDate), gpaText(edu.gpa)])}
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -205,11 +214,13 @@ export function ModernTemplate() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                   <div>
                     <h3 style={{ ...keepWithNext, fontSize: '12px', fontWeight: 600, color: '#1e293b', margin: 0 }}>{exp.position}</h3>
-                    <p style={{ fontSize: '11px', color: '#3b82f6', margin: '2px 0 0 0' }}>{exp.company}</p>
+                    {exp.company && <p style={{ fontSize: '11px', color: '#3b82f6', margin: '2px 0 0 0' }}>{exp.company}</p>}
                   </div>
-                  <span style={{ fontSize: '9px', color: '#64748b', whiteSpace: 'nowrap' }}>
-                    {exp.startDate} - {exp.current ? 'Present' : exp.endDate}
-                  </span>
+                  {dateRange(exp.startDate, exp.endDate, exp.current) && (
+                    <span style={{ fontSize: '9px', color: '#64748b', whiteSpace: 'nowrap' }}>
+                      {dateRange(exp.startDate, exp.endDate, exp.current)}
+                    </span>
+                  )}
                 </div>
                 {exp.description && (
                   <p style={{ fontSize: '10px', color: '#64748b', marginTop: '6px', lineHeight: '1.5', margin: '6px 0 0 0' }}>{exp.description}</p>
@@ -232,7 +243,14 @@ export function ModernTemplate() {
                   borderRadius: '6px',
                 }}
               >
-                <h3 style={{ ...keepWithNext, fontSize: '11px', fontWeight: 600, color: '#1e293b', margin: 0 }}>{project.name}</h3>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '12px' }}>
+                  <h3 style={{ fontSize: '11px', fontWeight: 600, color: '#1e293b', margin: 0 }}>{project.name}</h3>
+                  {project.link && (
+                    <span style={{ fontSize: '9px', color: '#64748b', textAlign: 'right', wordBreak: 'break-all' }}>
+                      <ContactLink kind="url" value={project.link} />
+                    </span>
+                  )}
+                </div>
                 {project.technologies && <p style={{ fontSize: '9px', color: '#3b82f6', margin: '3px 0 0 0' }}>{project.technologies}</p>}
                 {project.description && (
                   <p style={{ fontSize: '9px', color: '#64748b', marginTop: '4px', lineHeight: '1.4', margin: '4px 0 0 0' }}>{project.description}</p>

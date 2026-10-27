@@ -2,14 +2,18 @@
 
 A resume builder for the web: fill in your details, pick one of 20 templates,
 and download a PDF that matches the preview exactly, across as many A4 pages as
-the resume needs.
+the resume needs. Every template prints every field you fill in, and email,
+phone, LinkedIn, website and project links are clickable in the PDF.
+
+The resume is saved in your browser as you type (localStorage) and never
+stored on the server.
 
 ## How it fits together
 
 | Path | What it is |
 | --- | --- |
 | `src/` | The web app: React 19, Vite, TypeScript, Tailwind. |
-| `src/templates/` | The 20 resume templates. Read `paging.ts` before touching one. |
+| `src/templates/` | The 20 resume templates. Read `paging.ts` and `fields.tsx` before touching one. |
 | `pdf-service/` | Node service that turns a resume into a PDF by printing the app's `/print` page in headless Chromium. |
 | `docker/`, `docker-compose.yml` | Production stack: Caddy edge with automatic HTTPS, the static app, the PDF service. |
 | `e2e/` | Playwright tests, including pagination of every template. |
