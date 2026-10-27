@@ -1,0 +1,26 @@
+# Internal static server for the web app. Not exposed to the internet: the
+# edge proxy (docker/Caddyfile) terminates TLS and forwards here, and the
+# pdf-service reaches /print here directly over the internal network.
+{
+	admin off
+	auto_https off
+}
+
+:8080 {
+	root * /srv
+	encode zstd gzip
+
+	# Vite fingerprints everything under /assets, so a file there never
+	# changes: cache it for a year. Everything else must be revalidated, or a
+	# browser keeps running an old index.html after a deploy.
+	@immutable path /assets/*
+	header @immutable Cache-Control "public, max-age=31536000, immutable"
+	@mutable not path /assets/*
+	header @mutable Cache-Control "no-cache"
+
+	# The app uses client-side routing (BrowserRouter): /editor, /templates and
+	# /print are not files. Without this fallback the pdf-service's request for
+	# /print would be a 404 and every export would fail.
+	try_files {path} /index.html
+	file_server
+}

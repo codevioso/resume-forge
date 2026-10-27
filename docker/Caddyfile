@@ -1,0 +1,42 @@
+# Public edge: TLS, routing, security headers.
+#
+# Caddy obtains and renews the Let's Encrypt certificate for {$DOMAIN}
+# automatically on first start, provided DNS for the domain points at this
+# server and ports 80 and 443 are open. See docs/DEPLOY.md.
+{
+	email {$ACME_EMAIL}
+}
+
+{$DOMAIN} {
+	encode zstd gzip
+
+	# The PDF API, on the app's own origin — so the browser makes a same-origin
+	# request and no CORS configuration exists to get wrong.
+	handle /api/pdf {
+		uri strip_prefix /api
+		request_body {
+			max_size 10MB
+		}
+		reverse_proxy pdf:3040 {
+			transport http {
+				# A long resume can take a few seconds to render, and a request
+				# may first wait in the service's queue.
+				read_timeout 90s
+			}
+		}
+	}
+
+	# Everything else is the web app.
+	handle {
+		reverse_proxy web:8080
+	}
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		-Server
+	}
+}

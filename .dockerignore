@@ -1,0 +1,15 @@
+# Build context for docker/web.Dockerfile is the repository root. The Dockerfile
+# copies only what the build needs; this keeps the rest out of the context too.
+**/node_modules
+dist
+mobile
+docs
+e2e
+test-results
+playwright-report
+pdf-service
+.git
+.env
+.env.*
+!.env.example
+*.log
