@@ -1,5 +1,7 @@
 import { useState, useRef } from 'react';
 import { useResume } from '../context/ResumeContext';
+import { emptyResumeData, hasContent } from '../data/emptyResume';
+import { photoToDataUrl } from '../utils/photo';
 import { Experience, Education, Skill, Project, ResumeData, CustomField, CustomFieldItem } from '../types/resume';
 import { Plus, Trash2, ChevronDown, ChevronUp, User, Briefcase, GraduationCap, Wrench, FolderOpen, Sparkles, RotateCcw, Camera, X, Layers, Pencil } from 'lucide-react';
 
@@ -106,40 +108,29 @@ export function EditorForm() {
   const { resumeData, setResumeData } = useResume();
   const [expandedSections, setExpandedSections] = useState<Section[]>(['personal']);
 
+  // The resume is saved in the browser, so replacing it is no longer undone
+  // by a refresh: ask first whenever there is something to lose.
   const loadSampleData = () => {
+    if (hasContent(resumeData) && !window.confirm('Replace your resume with the sample? Your current details will be lost.')) return;
     setResumeData(sampleData);
     setExpandedSections(['personal', 'experience', 'education', 'skills', 'projects', 'custom']);
   };
 
   const clearAllData = () => {
-    setResumeData({
-      personalInfo: {
-        fullName: '',
-        email: '',
-        phone: '',
-        location: '',
-        title: '',
-        summary: '',
-        linkedin: '',
-        website: '',
-        photo: '',
-      },
-      experiences: [],
-      education: [],
-      skills: [],
-      projects: [],
-      customFields: [],
-    });
+    if (hasContent(resumeData) && !window.confirm('Clear your whole resume? This cannot be undone.')) return;
+    setResumeData(emptyResumeData());
   };
 
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        updatePersonalInfo('photo', reader.result as string);
-      };
-      reader.readAsDataURL(file);
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const input = e.target;
+    const file = input.files?.[0];
+    // Cleared so choosing the same file again still fires a change.
+    input.value = '';
+    if (!file) return;
+    try {
+      updatePersonalInfo('photo', await photoToDataUrl(file));
+    } catch {
+      window.alert('That file could not be opened as an image. Try a JPEG or PNG.');
     }
   };
 

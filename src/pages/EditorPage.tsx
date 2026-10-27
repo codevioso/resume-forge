@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Download, FileText, Loader2, ZoomIn, ZoomOut, Eye, Palette } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, Check, Download, FileText, Loader2, ZoomIn, ZoomOut, Eye, Palette } from 'lucide-react';
 import { useResume } from '../context/ResumeContext';
 import { EditorForm } from '../components/EditorForm';
 import { ResumePreview } from '../components/ResumePreview';
@@ -51,7 +51,7 @@ function exportFailureMessage(status: number | null): string {
 
 export function EditorPage() {
   const navigate = useNavigate();
-  const { resumeData, selectedTemplate, setSelectedTemplate } = useResume();
+  const { resumeData, selectedTemplate, setSelectedTemplate, saveStatus } = useResume();
   const resumeRef = useRef<HTMLDivElement>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [zoom, setZoom] = useState(0.5);
@@ -137,6 +137,24 @@ export function EditorPage() {
               </div>
               <span className="text-lg font-bold text-white hidden sm:inline">ResumeForge</span>
             </div>
+            {saveStatus === 'saved' && (
+              <span
+                className="hidden md:flex items-center gap-1.5 text-xs text-slate-500"
+                title="Your resume is kept in this browser only. It is not uploaded anywhere until you export a PDF."
+              >
+                <Check className="w-3.5 h-3.5 text-emerald-500" />
+                Saved in this browser
+              </span>
+            )}
+            {saveStatus === 'failed' && (
+              <span
+                className="flex items-center gap-1.5 text-xs text-amber-400"
+                title="The browser refused to store the resume (storage full, or disabled in private mode). Export a PDF before closing this tab."
+              >
+                <AlertTriangle className="w-3.5 h-3.5" />
+                Not saved — export before closing
+              </span>
+            )}
           </div>
 
           <div className="flex items-center gap-2">

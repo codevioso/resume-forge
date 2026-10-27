@@ -36,10 +36,13 @@ PDF. The pdf service therefore only ever opens `RENDER_ORIGIN` (fixed in
 `docker-compose.yml`, never taken from a request), blocks every other request
 the page makes, and in any case has no network route out.
 
-**What the server stores.** Nothing about users. Resumes live in the user's
-browser and are sent to the pdf service only for the length of one export;
-neither the request nor the PDF is written to disk or logged. The only state on
-the server is Caddy's TLS certificates (the `caddy_data` volume).
+**What the server stores.** Nothing about users. A resume is saved in the
+user's own browser (localStorage), so it survives a refresh or a closed tab on
+that device; it is sent to the pdf service only for the length of one export,
+and neither the request nor the PDF is written to disk or logged. The only
+state on the server is Caddy's TLS certificates (the `caddy_data` volume).
+Clearing site data in the browser deletes the saved resume; there is no
+server-side copy to recover it from.
 
 ---
 
