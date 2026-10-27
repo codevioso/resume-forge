@@ -1,76 +1,70 @@
-import cors from 'cors';
-import express from 'express';
-import { chromium } from 'playwright';
+import { createApp, log } from './lib/app.mjs';
+import { loadConfig } from './lib/config.mjs';
+import { Renderer } from './lib/renderer.mjs';
 
-const PORT = Number(process.env.PDF_SERVICE_PORT || 3040);
-const A4_W = 794;
-const A4_H = 1123;
-const STORAGE_KEY = 'resume-forge-pdf-export';
+/**
+ * Entry point: read config, start the browser, serve, and shut down cleanly.
+ *
+ * See docs/DEPLOY.md for the environment variables and how this runs under
+ * Docker Compose.
+ */
 
-const app = express();
-app.use(cors({ origin: true, credentials: true }));
-app.use(express.json({ limit: '25mb' }));
+let config;
+try {
+  config = loadConfig();
+} catch (err) {
+  // A misconfigured deployment should fail loudly at boot, naming the variable,
+  // rather than serve requests that all fail later for a less obvious reason.
+  console.error(`[pdf-service] configuration error: ${err.message}`);
+  process.exit(1);
+}
 
-app.get('/health', (_, res) => {
-  res.json({ ok: true });
+const renderer = new Renderer({
+  renderOrigin: config.renderOrigin,
+  printPath: config.printPath,
+  renderTimeoutMs: config.renderTimeoutMs,
+});
+const { app, slots, limiter } = createApp({ config, renderer });
+
+const server = app.listen(config.port, () => {
+  log('info', {
+    msg: 'listening',
+    port: config.port,
+    renderOrigin: config.renderOrigin,
+    concurrency: config.concurrency,
+    corsOrigins: config.allowedOrigins.length ? config.allowedOrigins : 'same-origin only',
+  });
 });
 
-app.post('/pdf', async (req, res) => {
-  const { printUrl, snapshot } = req.body ?? {};
-  if (!printUrl || typeof printUrl !== 'string') {
-    return res.status(400).json({ error: 'printUrl (string) is required' });
+// Launch Chromium now rather than on the first export, so no user pays for it.
+// A failure here is logged, not fatal: /ready reports it, and the renderer
+// retries on the next request.
+renderer.warmUp().then(
+  () => log('info', { msg: 'browser ready' }),
+  (err) => log('error', { msg: 'browser failed to launch', error: err.message }),
+);
+
+const sweep = setInterval(() => limiter.sweep(), 60_000);
+sweep.unref();
+
+let shuttingDown = false;
+async function shutdown(signal) {
+  if (shuttingDown) return;
+  shuttingDown = true;
+  log('info', { msg: 'shutting down', signal, inFlight: slots.inFlight, waiting: slots.waiting });
+
+  // Docker sends SIGTERM and waits (10s by default, set higher in compose)
+  // before SIGKILL. Stop taking new connections, let in-flight renders finish,
+  // then close the browser so no Chromium process is orphaned.
+  server.close();
+  const deadline = Date.now() + config.renderTimeoutMs;
+  while (slots.inFlight > 0 && Date.now() < deadline) {
+    await new Promise((r) => setTimeout(r, 100));
   }
-  if (!snapshot?.resumeData || !snapshot?.selectedTemplate?.id) {
-    return res.status(400).json({ error: 'snapshot.resumeData and snapshot.selectedTemplate.id are required' });
-  }
+  await renderer.close();
+  log('info', { msg: 'stopped' });
+  process.exit(0);
+}
 
-  let browser;
-  try {
-    browser = await chromium.launch({ headless: true });
-    const page = await browser.newPage({
-      viewport: { width: A4_W, height: A4_H },
-      deviceScaleFactor: 1,
-    });
-
-    await page.addInitScript(
-      ({ key, data }) => {
-        sessionStorage.setItem(key, JSON.stringify(data));
-      },
-      {
-        key: STORAGE_KEY,
-        data: {
-          resumeData: snapshot.resumeData,
-          selectedTemplate: snapshot.selectedTemplate,
-        },
-      },
-    );
-
-    await page.goto(printUrl, { waitUntil: 'load', timeout: 120000 });
-    await page.waitForSelector('[data-print-ready="true"]', { timeout: 90000 });
-
-    const pdfBuffer = await page.pdf({
-      width: `${A4_W}px`,
-      height: `${A4_H}px`,
-      printBackground: true,
-      margin: { top: '0', right: '0', bottom: '0', left: '0' },
-    });
-
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', 'attachment; filename="resume.pdf"');
-    res.send(Buffer.from(pdfBuffer));
-  } catch (err) {
-    console.error('[pdf-service]', err);
-    const message = err instanceof Error ? err.message : String(err);
-    res.status(500).json({ error: message });
-  } finally {
-    if (browser) {
-      await browser.close();
-    }
-  }
-});
-
-app.listen(PORT, () => {
-  console.log(`ResumeForge PDF service listening on http://localhost:${PORT}`);
-  console.log('POST /pdf with JSON { printUrl, snapshot }');
-  console.log('If Chromium is missing, run: npx playwright install chromium');
-});
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));

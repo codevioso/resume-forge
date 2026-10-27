@@ -12,6 +12,11 @@
     "test:e2e:update": "playwright test --update-snapshots"
   },
   "dependencies": {
+    "@fontsource/gelasio": "^5.3.0",
+    "@fontsource/inter": "^5.3.0",
+    "@fontsource/jetbrains-mono": "^5.3.0",
+    "@fontsource/playfair-display": "^5.3.0",
+    "@fontsource/source-code-pro": "^5.3.1",
     "clsx": "2.1.1",
     "lucide-react": "^0.574.0",
     "react": "19.2.3",
@@ -20,15 +25,15 @@
     "tailwind-merge": "3.4.0"
   },
   "devDependencies": {
+    "@playwright/test": "1.59.1",
     "@tailwindcss/vite": "^4.1.18",
     "@types/node": "^22.0.0",
     "@types/react": "19.2.7",
     "@types/react-dom": "19.2.3",
     "@vitejs/plugin-react": "^5.1.4",
+    "pdfjs-dist": "^4.10.38",
     "tailwindcss": "^4.1.18",
     "typescript": "5.9.3",
-    "vite": "^7.2.0",
-    "vite-plugin-singlefile": "2.3.0",
-    "@playwright/test": "^1.51.0"
+    "vite": "^7.2.0"
   }
 }

@@ -7,14 +7,46 @@ import { ResumePreview } from '../components/ResumePreview';
 import { templates } from '../data/templates';
 
 /**
- * POST endpoint for the Playwright PDF service — only from `VITE_PDF_SERVICE_URL` (no defaults in code).
- * Use a full URL ending in `/pdf`, or a base URL (we append `/pdf` if missing).
+ * Where the editor posts a resume to get a PDF back.
+ *
+ * Defaults to `/api/pdf` on the app's own origin, which is how production is
+ * deployed: the reverse proxy serves the app and the PDF API under one host,
+ * so no CORS is involved at all (see docs/DEPLOY.md). Set
+ * `VITE_PDF_SERVICE_URL` only to point a development build at a service on
+ * another origin — a full URL ending in `/pdf`, or a base URL.
  */
-function resolvePdfExportUrl(): string | null {
+function resolvePdfExportUrl(): string {
   const raw = import.meta.env.VITE_PDF_SERVICE_URL?.trim();
-  if (!raw) return null;
+  if (!raw) return '/api/pdf';
   if (raw.endsWith('/pdf')) return raw;
   return `${raw.replace(/\/$/, '')}/pdf`;
+}
+
+/**
+ * A filename built from the person's name: `amara-okonkwo-resume.pdf`.
+ *
+ * Every run of characters outside a-z0-9 collapses to one hyphen, so slashes,
+ * colons and trailing dots — anything a filesystem might reject — cannot
+ * survive into the name.
+ */
+function pdfFileName(fullName: string): string {
+  const slug = fullName
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 60);
+  return slug ? `${slug}-resume.pdf` : 'resume.pdf';
+}
+
+/** What to tell the user when the export fails, by what actually went wrong. */
+function exportFailureMessage(status: number | null): string {
+  if (status === 429) return 'Too many exports in a short time. Please wait a minute and try again.';
+  if (status === 503) return 'The PDF service is busy right now. Please try again in a few seconds.';
+  if (status === 413) return 'This resume is too large to export — try a smaller photo.';
+  if (status === 400) return 'Some of the resume data could not be exported. Check for unusually long entries.';
+  return 'Could not generate the PDF. Please try again in a moment.';
 }
 
 export function EditorPage() {
@@ -35,35 +67,25 @@ export function EditorPage() {
     if (!selectedTemplate) return;
 
     setIsExporting(true);
+    let status: number | null = null;
     try {
-      const pdfUrl = resolvePdfExportUrl();
-      if (!pdfUrl) {
-        alert(
-          'PDF export is not configured. Set VITE_PDF_SERVICE_URL in .env.local (see .env.example) and restart the dev server, or set it in your host build environment.',
-        );
-        return;
-      }
-
-      await document.fonts.ready;
-
-      const printUrl = `${window.location.origin}/print`;
-      const response = await fetch(pdfUrl, {
+      // No print URL is sent. The service renders a URL from its own
+      // configuration; it used to take one from this request body, which let
+      // any caller point the server's browser at an arbitrary address.
+      const response = await fetch(resolvePdfExportUrl(), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          printUrl,
-          snapshot: { resumeData, selectedTemplate },
-        }),
+        body: JSON.stringify({ snapshot: { resumeData, selectedTemplate } }),
       });
+      status = response.status;
 
       const contentType = response.headers.get('content-type') ?? '';
       if (!response.ok) {
-        const errText = contentType.includes('application/json')
+        const detail = contentType.includes('application/json')
           ? JSON.stringify(await response.json())
           : await response.text();
-        throw new Error(errText || `HTTP ${response.status}`);
+        throw new Error(detail || `HTTP ${response.status}`);
       }
-
       if (!contentType.includes('application/pdf')) {
         throw new Error('PDF service did not return a PDF');
       }
@@ -72,14 +94,12 @@ export function EditorPage() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'resume.pdf';
+      a.download = pdfFileName(resumeData.personalInfo.fullName);
       a.click();
       URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Error generating PDF:', error);
-      alert(
-        'Could not generate PDF. Check that the PDF API is running, CORS allows this site, and VITE_PDF_SERVICE_URL is correct.',
-      );
+      alert(exportFailureMessage(status));
     } finally {
       setIsExporting(false);
     }
@@ -232,7 +252,7 @@ export function EditorPage() {
                 className="transition-transform duration-200"
               >
                 <div className="shadow-2xl shadow-black/50 rounded-sm overflow-hidden">
-                  <ResumePreview ref={resumeRef} />
+                  <ResumePreview ref={resumeRef} showPageGuides />
                 </div>
               </div>
             </div>
@@ -276,7 +296,7 @@ export function EditorPage() {
         </div>
         <div className="p-4 flex justify-center">
           <div style={{ transform: 'scale(0.4)', transformOrigin: 'top center' }}>
-            <ResumePreview ref={resumeRef} />
+            <ResumePreview ref={resumeRef} showPageGuides />
           </div>
         </div>
       </div>

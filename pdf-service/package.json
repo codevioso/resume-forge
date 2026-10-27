@@ -1,0 +1,20 @@
+{
+  "name": "resume-forge-pdf-service",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Renders the web app's /print route to PDF with headless Chromium.",
+  "type": "module",
+  "main": "server.mjs",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node --test \"test/**/*.test.mjs\""
+  },
+  "dependencies": {
+    "cors": "2.8.5",
+    "express": "4.21.2",
+    "playwright": "1.59.1"
+  }
+}

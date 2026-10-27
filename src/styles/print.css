@@ -1,0 +1,33 @@
+/*
+ * Print layout for the PDF.
+ *
+ * The page size lives here, in the document, and the pdf-service renders with
+ * `preferCSSPageSize`, so the template decides how a page is laid out rather
+ * than the service hard-coding a viewport. Margins are zero because templates
+ * own their own padding, including full-bleed backgrounds such as a dark
+ * sidebar that must reach the paper's edge.
+ */
+@page {
+  size: A4;
+  margin: 0;
+}
+
+@media print {
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    background: #ffffff;
+  }
+
+  /* Exact colours: without this, Chromium may lighten backgrounds to save ink. */
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* On-screen page guides never reach the paper. */
+  [data-page-guides] {
+    display: none !important;
+  }
+}

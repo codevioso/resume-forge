@@ -1,5 +1,7 @@
 import { useResume } from '../../context/ResumeContext';
 import { templateFonts } from '../fonts';
+import { keepTogether, keepWithNext, pageRoot, repeatPadding } from '../paging';
+import { leftColumn, PageBackdrop } from '../PageBackdrop';
 
 export function ModernTemplate() {
   const { resumeData } = useResume();
@@ -10,17 +12,17 @@ export function ModernTemplate() {
   return (
     <div
       style={{
-        width: '794px',
-        height: '1123px',
-        backgroundColor: '#ffffff',
+        ...pageRoot,
         fontFamily: fonts.modern,
         display: 'flex',
-        overflow: 'hidden',
       }}
     >
+      <PageBackdrop background={leftColumn('#1e293b', 260)} />
       <div
         style={{
+          ...repeatPadding,
           width: '260px',
+          flexShrink: 0,
           backgroundColor: '#1e293b',
           color: '#ffffff',
           padding: '32px 24px',
@@ -48,7 +50,7 @@ export function ModernTemplate() {
         )}
         <div style={{ marginBottom: '28px' }}>
           <h3
-            style={{
+            style={{ ...keepWithNext,
               fontSize: '11px',
               fontWeight: 700,
               letterSpacing: '2px',
@@ -93,7 +95,7 @@ export function ModernTemplate() {
         {skills.length > 0 && (
           <div style={{ marginBottom: '28px' }}>
             <h3
-              style={{
+              style={{ ...keepWithNext,
                 fontSize: '11px',
                 fontWeight: 700,
                 letterSpacing: '2px',
@@ -105,7 +107,7 @@ export function ModernTemplate() {
               SKILLS
             </h3>
             {skills.map((skill, index) => (
-              <div key={skill.id} style={{ marginBottom: index === skills.length - 1 ? 0 : '10px' }}>
+              <div key={skill.id} style={{ ...keepTogether, marginBottom: index === skills.length - 1 ? 0 : '10px' }}>
                 <div style={{ fontSize: '10px', color: '#e2e8f0', marginBottom: '4px' }}>{skill.name}</div>
                 <div style={{ height: '4px', backgroundColor: '#334155', borderRadius: '2px', overflow: 'hidden' }}>
                   <div
@@ -124,7 +126,7 @@ export function ModernTemplate() {
         {education.length > 0 && (
           <div style={{ marginBottom: '28px' }}>
             <h3
-              style={{
+              style={{ ...keepWithNext,
                 fontSize: '11px',
                 fontWeight: 700,
                 letterSpacing: '2px',
@@ -136,7 +138,7 @@ export function ModernTemplate() {
               EDUCATION
             </h3>
             {education.map((edu, index) => (
-              <div key={edu.id} style={{ marginBottom: index === education.length - 1 ? 0 : '14px' }}>
+              <div key={edu.id} style={{ ...keepTogether, marginBottom: index === education.length - 1 ? 0 : '14px' }}>
                 <div style={{ fontSize: '11px', fontWeight: 600, color: '#f1f5f9', margin: 0, lineHeight: '1.3' }}>
                   {edu.degree}
                 </div>
@@ -152,7 +154,7 @@ export function ModernTemplate() {
         {validCustomFields.map((cf) => (
           <div key={cf.id} style={{ marginBottom: '28px' }}>
             <h3
-              style={{
+              style={{ ...keepWithNext,
                 fontSize: '11px',
                 fontWeight: 700,
                 letterSpacing: '2px',
@@ -164,7 +166,7 @@ export function ModernTemplate() {
               {cf.sectionTitle.toUpperCase()}
             </h3>
             {cf.items.map((item, idx) => (
-              <div key={item.id} style={{ marginBottom: idx === cf.items.length - 1 ? 0 : '10px' }}>
+              <div key={item.id} style={{ ...keepTogether, marginBottom: idx === cf.items.length - 1 ? 0 : '10px' }}>
                 <div style={{ fontSize: '10px', fontWeight: 600, color: '#e2e8f0' }}>{item.title}</div>
                 {item.subtitle && <div style={{ fontSize: '9px', color: '#94a3b8', marginTop: '2px' }}>{item.subtitle}</div>}
                 {item.description && <div style={{ fontSize: '9px', color: '#64748b', marginTop: '2px' }}>{item.description}</div>}
@@ -174,7 +176,7 @@ export function ModernTemplate() {
         ))}
       </div>
 
-      <div style={{ flex: 1, padding: '36px 32px' }}>
+      <div style={{ ...repeatPadding, flex: 1, padding: '36px 32px' }}>
         <div style={{ marginBottom: '20px', borderBottom: '3px solid #3b82f6', paddingBottom: '16px' }}>
           <h1 style={{ fontSize: '28px', fontWeight: 700, color: '#1e293b', margin: '0 0 4px 0', lineHeight: '1.2' }}>
             {personalInfo.fullName || 'Your Name'}
@@ -183,17 +185,18 @@ export function ModernTemplate() {
         </div>
         {personalInfo.summary && (
           <div style={{ marginBottom: '20px' }}>
-            <h2 style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '1px', color: '#1e293b', margin: '0 0 8px 0' }}>PROFILE</h2>
+            <h2 style={{ ...keepWithNext, fontSize: '12px', fontWeight: 700, letterSpacing: '1px', color: '#1e293b', margin: '0 0 8px 0' }}>PROFILE</h2>
             <p style={{ fontSize: '10px', lineHeight: '1.6', color: '#475569', margin: 0 }}>{personalInfo.summary}</p>
           </div>
         )}
         {experiences.length > 0 && (
           <div style={{ marginBottom: '20px' }}>
-            <h2 style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '1px', color: '#1e293b', margin: '0 0 12px 0' }}>EXPERIENCE</h2>
+            <h2 style={{ ...keepWithNext, fontSize: '12px', fontWeight: 700, letterSpacing: '1px', color: '#1e293b', margin: '0 0 12px 0' }}>EXPERIENCE</h2>
             {experiences.map((exp, index) => (
               <div
                 key={exp.id}
                 style={{
+                  ...keepTogether,
                   marginBottom: index === experiences.length - 1 ? 0 : '14px',
                   paddingLeft: '12px',
                   borderLeft: '2px solid #e2e8f0',
@@ -201,7 +204,7 @@ export function ModernTemplate() {
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                   <div>
-                    <h3 style={{ fontSize: '12px', fontWeight: 600, color: '#1e293b', margin: 0 }}>{exp.position}</h3>
+                    <h3 style={{ ...keepWithNext, fontSize: '12px', fontWeight: 600, color: '#1e293b', margin: 0 }}>{exp.position}</h3>
                     <p style={{ fontSize: '11px', color: '#3b82f6', margin: '2px 0 0 0' }}>{exp.company}</p>
                   </div>
                   <span style={{ fontSize: '9px', color: '#64748b', whiteSpace: 'nowrap' }}>
@@ -217,18 +220,19 @@ export function ModernTemplate() {
         )}
         {projects.length > 0 && (
           <div style={{ marginBottom: '20px' }}>
-            <h2 style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '1px', color: '#1e293b', margin: '0 0 12px 0' }}>PROJECTS</h2>
+            <h2 style={{ ...keepWithNext, fontSize: '12px', fontWeight: 700, letterSpacing: '1px', color: '#1e293b', margin: '0 0 12px 0' }}>PROJECTS</h2>
             {projects.map((project, index) => (
               <div
                 key={project.id}
                 style={{
+                  ...keepTogether,
                   marginBottom: index === projects.length - 1 ? 0 : '10px',
                   padding: '10px',
                   backgroundColor: '#f8fafc',
                   borderRadius: '6px',
                 }}
               >
-                <h3 style={{ fontSize: '11px', fontWeight: 600, color: '#1e293b', margin: 0 }}>{project.name}</h3>
+                <h3 style={{ ...keepWithNext, fontSize: '11px', fontWeight: 600, color: '#1e293b', margin: 0 }}>{project.name}</h3>
                 {project.technologies && <p style={{ fontSize: '9px', color: '#3b82f6', margin: '3px 0 0 0' }}>{project.technologies}</p>}
                 {project.description && (
                   <p style={{ fontSize: '9px', color: '#64748b', marginTop: '4px', lineHeight: '1.4', margin: '4px 0 0 0' }}>{project.description}</p>

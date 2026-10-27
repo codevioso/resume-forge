@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react';
 import type { CustomField, Skill } from '../../types/resume';
+import { keepTogether } from '../paging';
 import { resumePillStyle } from '../resumePill';
 import { SectionTitleAccent } from '../sectionLabel';
 
@@ -134,6 +135,7 @@ export function CustomFieldBlocks({
             <div
               key={item.id}
               style={{
+                ...keepTogether,
                 marginBottom: '8px',
                 padding: '8px 10px',
                 backgroundColor: cardBg,

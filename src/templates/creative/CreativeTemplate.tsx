@@ -1,5 +1,8 @@
+import { A4_HEIGHT_PX } from '../../constants/layout';
 import { useResume } from '../../context/ResumeContext';
 import { templateFonts } from '../fonts';
+import { PageBackdrop } from '../PageBackdrop';
+import { keepTogether, pageRoot, repeatPadding } from '../paging';
 import { resumePillStyle } from '../resumePill';
 import { SectionTitleAccent } from '../sectionLabel';
 
@@ -12,14 +15,15 @@ export function CreativeTemplate() {
   return (
     <div
       style={{
-        width: '794px',
-        height: '1123px',
+        ...pageRoot,
+        ...repeatPadding,
         backgroundColor: '#fefefe',
         fontFamily: fonts.creative,
-        overflow: 'hidden',
         position: 'relative',
+        padding: '40px 0',
       }}
     >
+      <PageBackdrop background="#fefefe" />
       <div
         style={{
           position: 'absolute',
@@ -32,10 +36,11 @@ export function CreativeTemplate() {
           opacity: 0.6,
         }}
       />
+      {/* Foot of page one, not of the document: `bottom: 0` would land mid-way down the last page. */}
       <div
         style={{
           position: 'absolute',
-          bottom: 0,
+          top: A4_HEIGHT_PX - 150,
           left: 0,
           width: '150px',
           height: '150px',
@@ -45,7 +50,7 @@ export function CreativeTemplate() {
         }}
       />
 
-      <div style={{ padding: '40px 44px 32px 44px', position: 'relative', zIndex: 1 }}>
+      <div style={{ padding: '0 44px 32px 44px', position: 'relative', zIndex: 1 }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: '28px' }}>
           {personalInfo.photo && (
             <div style={{ position: 'relative' }}>
@@ -182,6 +187,7 @@ export function CreativeTemplate() {
                       key={skill.id}
                       style={{
                         ...resumePillStyle({ preset: 'md' }),
+                        ...keepTogether,
                         backgroundColor: colors[idx % 5],
                         borderRadius: '8px',
                         color: textColors[idx % 5],
@@ -217,7 +223,7 @@ export function CreativeTemplate() {
                 Education
               </SectionTitleAccent>
               {education.map((edu, index) => (
-                <div key={edu.id} style={{ marginBottom: index === education.length - 1 ? 0 : '14px', padding: '12px', backgroundColor: '#faf5ff', borderRadius: '10px' }}>
+                <div key={edu.id} style={{ ...keepTogether, marginBottom: index === education.length - 1 ? 0 : '14px', padding: '12px', backgroundColor: '#faf5ff', borderRadius: '10px' }}>
                   <div style={{ fontSize: '11px', fontWeight: 700, color: '#1f2937', margin: 0 }}>{edu.degree}</div>
                   {edu.field && <div style={{ fontSize: '9px', color: '#8b5cf6', marginTop: '2px', fontWeight: 500 }}>{edu.field}</div>}
                   <div style={{ fontSize: '10px', color: '#6b7280', marginTop: '4px' }}>{edu.institution}</div>
@@ -253,6 +259,7 @@ export function CreativeTemplate() {
                 <div
                   key={item.id}
                   style={{
+                    ...keepTogether,
                     marginBottom: idx === cf.items.length - 1 ? 0 : '10px',
                     padding: '8px 10px',
                     backgroundColor: '#eff6ff',
@@ -290,7 +297,7 @@ export function CreativeTemplate() {
                 Experience
               </SectionTitleAccent>
               {experiences.map((exp, index) => (
-                <div key={exp.id} style={{ marginBottom: index === experiences.length - 1 ? 0 : '16px', position: 'relative', paddingLeft: '16px' }}>
+                <div key={exp.id} style={{ ...keepTogether, marginBottom: index === experiences.length - 1 ? 0 : '16px', position: 'relative', paddingLeft: '16px' }}>
                   <div style={{ position: 'absolute', left: 0, top: '6px', width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#db2777' }} />
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
                     <div>
@@ -339,7 +346,7 @@ export function CreativeTemplate() {
                 {projects.map((project, idx) => {
                   const bgColors = ['#fce7f3', '#ede9fe', '#dbeafe'];
                   return (
-                    <div key={project.id} style={{ width: 'calc(50% - 6px)', padding: '14px', backgroundColor: bgColors[idx % 3], borderRadius: '12px' }}>
+                    <div key={project.id} style={{ ...keepTogether, width: 'calc(50% - 6px)', padding: '14px', backgroundColor: bgColors[idx % 3], borderRadius: '12px' }}>
                       <h3 style={{ fontSize: '11px', fontWeight: 700, color: '#1f2937', margin: 0 }}>{project.name}</h3>
                       {project.technologies && <p style={{ fontSize: '8px', color: '#8b5cf6', margin: '4px 0 0 0', fontWeight: 500 }}>{project.technologies}</p>}
                       {project.description && <p style={{ fontSize: '9px', color: '#6b7280', marginTop: '6px', lineHeight: '1.5', margin: '6px 0 0 0' }}>{project.description}</p>}

@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react';
+import { keepWithNext } from './paging';
 
 type SectionTitleAccentProps = {
   accentColumnPx?: number;
@@ -35,6 +36,8 @@ export function SectionTitleAccent({
         gridTemplateColumns: `${accentColumnPx}px minmax(0, 1fr)`,
         columnGap,
         alignItems: 'center',
+        // A section label never ends a page with its section starting overleaf.
+        ...keepWithNext,
         ...style,
       }}
     >

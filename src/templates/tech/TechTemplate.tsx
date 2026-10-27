@@ -1,5 +1,7 @@
 import { useResume } from '../../context/ResumeContext';
 import { templateFonts } from '../fonts';
+import { PageBackdrop } from '../PageBackdrop';
+import { keepTogether, keepWithNext, pageRoot, repeatPadding } from '../paging';
 import { resumePillStyle } from '../resumePill';
 
 export function TechTemplate() {
@@ -11,14 +13,13 @@ export function TechTemplate() {
   return (
     <div
       style={{
-        width: '794px',
-        height: '1123px',
+        ...pageRoot,
         backgroundColor: '#0f172a',
         fontFamily: fonts.tech,
         color: '#e2e8f0',
-        overflow: 'hidden',
       }}
     >
+      <PageBackdrop background="#0f172a" />
       <div style={{ padding: '36px 40px', borderBottom: '1px solid #334155', display: 'flex', alignItems: 'center', gap: '24px' }}>
         {personalInfo.photo && (
           <img
@@ -62,17 +63,18 @@ export function TechTemplate() {
           )}
         </div>
       </div>
-      <div style={{ padding: '28px 40px', display: 'flex', gap: '32px' }}>
+      <div style={{ ...repeatPadding, padding: '28px 40px', display: 'flex', gap: '32px' }}>
         <div style={{ width: '200px', flexShrink: 0 }}>
           {skills.length > 0 && (
             <div style={{ marginBottom: '24px' }}>
-              <h2 style={{ fontSize: '10px', fontWeight: 700, color: '#06b6d4', margin: '0 0 12px 0', letterSpacing: '1px' }}>{'<'} TECH_STACK {'>'}</h2>
+              <h2 style={{ ...keepWithNext, fontSize: '10px', fontWeight: 700, color: '#06b6d4', margin: '0 0 12px 0', letterSpacing: '1px' }}>{'<'} TECH_STACK {'>'}</h2>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                 {skills.map((skill) => (
                   <span
                     key={skill.id}
                     style={{
                       ...resumePillStyle({ fontSizePx: 9, heightPx: 24, padXPx: 8, borderWidthPx: 1 }),
+                      ...keepTogether,
                       backgroundColor: '#1e293b',
                       border: '1px solid #334155',
                       borderRadius: '4px',
@@ -87,11 +89,12 @@ export function TechTemplate() {
           )}
           {education.length > 0 && (
             <div style={{ marginBottom: '24px' }}>
-              <h2 style={{ fontSize: '10px', fontWeight: 700, color: '#06b6d4', margin: '0 0 12px 0', letterSpacing: '1px' }}>{'<'} EDUCATION {'>'}</h2>
+              <h2 style={{ ...keepWithNext, fontSize: '10px', fontWeight: 700, color: '#06b6d4', margin: '0 0 12px 0', letterSpacing: '1px' }}>{'<'} EDUCATION {'>'}</h2>
               {education.map((edu, index) => (
                 <div
                   key={edu.id}
                   style={{
+                    ...keepTogether,
                     marginBottom: index === education.length - 1 ? 0 : '12px',
                     padding: '10px',
                     backgroundColor: '#1e293b',
@@ -110,7 +113,7 @@ export function TechTemplate() {
           )}
           {validCustomFields.map((cf) => (
             <div key={cf.id} style={{ marginBottom: '24px' }}>
-              <h2 style={{ fontSize: '10px', fontWeight: 700, color: '#06b6d4', margin: '0 0 12px 0', letterSpacing: '1px' }}>
+              <h2 style={{ ...keepWithNext, fontSize: '10px', fontWeight: 700, color: '#06b6d4', margin: '0 0 12px 0', letterSpacing: '1px' }}>
                 {'<'}{' '}
                 {cf.sectionTitle.toUpperCase().replace(/ /g, '_')} {' '}
                 {'>'}
@@ -119,6 +122,7 @@ export function TechTemplate() {
                 <div
                   key={item.id}
                   style={{
+                    ...keepTogether,
                     marginBottom: idx === cf.items.length - 1 ? 0 : '8px',
                     padding: '8px 10px',
                     backgroundColor: '#1e293b',
@@ -136,16 +140,16 @@ export function TechTemplate() {
         </div>
         <div style={{ flex: 1 }}>
           {personalInfo.summary && (
-            <div style={{ marginBottom: '24px', padding: '14px', backgroundColor: '#1e293b', borderRadius: '8px' }}>
+            <div style={{ ...keepTogether, marginBottom: '24px', padding: '14px', backgroundColor: '#1e293b', borderRadius: '8px' }}>
               <div style={{ fontSize: '9px', color: '#06b6d4', marginBottom: '8px' }}>{'// about_me'}</div>
               <p style={{ fontSize: '10px', lineHeight: '1.7', color: '#cbd5e1', margin: 0 }}>{personalInfo.summary}</p>
             </div>
           )}
           {experiences.length > 0 && (
             <div style={{ marginBottom: '24px' }}>
-              <h2 style={{ fontSize: '10px', fontWeight: 700, color: '#06b6d4', margin: '0 0 12px 0', letterSpacing: '1px' }}>{'<'} EXPERIENCE {'>'}</h2>
+              <h2 style={{ ...keepWithNext, fontSize: '10px', fontWeight: 700, color: '#06b6d4', margin: '0 0 12px 0', letterSpacing: '1px' }}>{'<'} EXPERIENCE {'>'}</h2>
               {experiences.map((exp, index) => (
-                <div key={exp.id} style={{ marginBottom: index === experiences.length - 1 ? 0 : '12px', padding: '14px', backgroundColor: '#1e293b', borderRadius: '8px' }}>
+                <div key={exp.id} style={{ ...keepTogether, marginBottom: index === experiences.length - 1 ? 0 : '12px', padding: '14px', backgroundColor: '#1e293b', borderRadius: '8px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <div>
                       <h3 style={{ fontSize: '12px', fontWeight: 600, color: '#f1f5f9', margin: 0 }}>{exp.position}</h3>
@@ -169,12 +173,13 @@ export function TechTemplate() {
           )}
           {projects.length > 0 && (
             <div>
-              <h2 style={{ fontSize: '10px', fontWeight: 700, color: '#06b6d4', margin: '0 0 12px 0', letterSpacing: '1px' }}>{'<'} PROJECTS {'>'}</h2>
+              <h2 style={{ ...keepWithNext, fontSize: '10px', fontWeight: 700, color: '#06b6d4', margin: '0 0 12px 0', letterSpacing: '1px' }}>{'<'} PROJECTS {'>'}</h2>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
                 {projects.map((project) => (
                   <div
                     key={project.id}
                     style={{
+                      ...keepTogether,
                       width: 'calc(50% - 5px)',
                       padding: '12px',
                       backgroundColor: '#1e293b',

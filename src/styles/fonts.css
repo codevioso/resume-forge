@@ -1,0 +1,55 @@
+/*
+ * Every font the templates use, served from this app rather than a CDN.
+ *
+ * This is what makes the PDF match the preview. The PDF is rendered by
+ * Chromium inside a Linux container that may not reach the internet and has
+ * none of the Microsoft fonts the old stacks fell back to (Segoe UI, Georgia,
+ * Consolas). Loading from Google Fonts meant a slow or failed fetch silently
+ * produced a document in a different typeface. The pdf-service now refuses
+ * every request that is not to the app's own origin, so a font that is not
+ * bundled here simply does not exist at render time.
+ *
+ * The weight list is what the templates use: 300-800, plus italic. The old
+ * Google Fonts request asked for 400-700 and no italic at all, so every 800
+ * was synthetic faux-bold and every italic was a mechanical slant.
+ *
+ * @font-face is lazy: a weight that no rendered element uses is never fetched,
+ * so listing the full range costs nothing at runtime.
+ */
+@import '@fontsource/inter/300.css';
+@import '@fontsource/inter/400.css';
+@import '@fontsource/inter/500.css';
+@import '@fontsource/inter/600.css';
+@import '@fontsource/inter/700.css';
+@import '@fontsource/inter/800.css';
+@import '@fontsource/inter/400-italic.css';
+@import '@fontsource/inter/700-italic.css';
+@import '@fontsource/playfair-display/400.css';
+@import '@fontsource/playfair-display/500.css';
+@import '@fontsource/playfair-display/600.css';
+@import '@fontsource/playfair-display/700.css';
+@import '@fontsource/playfair-display/800.css';
+@import '@fontsource/playfair-display/400-italic.css';
+@import '@fontsource/playfair-display/700-italic.css';
+@import '@fontsource/source-code-pro/300.css';
+@import '@fontsource/source-code-pro/400.css';
+@import '@fontsource/source-code-pro/500.css';
+@import '@fontsource/source-code-pro/600.css';
+@import '@fontsource/source-code-pro/700.css';
+@import '@fontsource/source-code-pro/800.css';
+@import '@fontsource/source-code-pro/400-italic.css';
+@import '@fontsource/jetbrains-mono/300.css';
+@import '@fontsource/jetbrains-mono/400.css';
+@import '@fontsource/jetbrains-mono/500.css';
+@import '@fontsource/jetbrains-mono/600.css';
+@import '@fontsource/jetbrains-mono/700.css';
+@import '@fontsource/jetbrains-mono/800.css';
+@import '@fontsource/jetbrains-mono/400-italic.css';
+/* Gelasio is metric-compatible with Georgia, which is a Microsoft font and
+   cannot ship in a Linux container. It stops at 700. */
+@import '@fontsource/gelasio/400.css';
+@import '@fontsource/gelasio/500.css';
+@import '@fontsource/gelasio/600.css';
+@import '@fontsource/gelasio/700.css';
+@import '@fontsource/gelasio/400-italic.css';
+@import '@fontsource/gelasio/700-italic.css';

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ResumePreview } from '../components/ResumePreview';
 import { ResumeProvider } from '../context/ResumeContext';
-import { A4_HEIGHT_PX, A4_WIDTH_PX } from '../constants/layout';
+import { A4_WIDTH_PX } from '../constants/layout';
 import { PDF_EXPORT_STORAGE_KEY } from '../constants/pdfExport';
 import type { ResumeData, Template } from '../types/resume';
 
@@ -68,18 +68,14 @@ function PrintCanvas() {
     };
   }, []);
 
+  // Width only. This used to be a fixed 1123px box with `overflow: hidden`,
+  // the last of three places that clipped every resume to one page. Chromium
+  // now paginates the document by the @page rule in src/styles/print.css.
+  // No background either: the canvas is white (print.css) or painted by the
+  // template's PageBackdrop, and a white box here ended where the content
+  // ended, leaving a light seam across the last page of every dark design.
   return (
-    <div
-      style={{
-        width: A4_WIDTH_PX,
-        height: A4_HEIGHT_PX,
-        overflow: 'hidden',
-        backgroundColor: '#ffffff',
-        margin: 0,
-        padding: 0,
-        position: 'relative',
-      }}
-    >
+    <div style={{ width: A4_WIDTH_PX, margin: 0, padding: 0 }}>
       <div data-print-ready={ready ? 'true' : undefined} style={{ width: '100%', height: '100%' }}>
         <ResumePreview />
       </div>

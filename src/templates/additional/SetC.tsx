@@ -1,16 +1,12 @@
-import type { CSSProperties } from 'react';
 import { useResume } from '../../context/ResumeContext';
-import { A4_HEIGHT_PX, A4_WIDTH_PX } from '../../constants/layout';
 import { templateFonts } from '../fonts';
+import { keepTogether, keepWithNext, pageRoot, repeatPadding } from '../paging';
+import { PageBackdrop } from '../PageBackdrop';
 import { resumePillStyle } from '../resumePill';
 import { CustomFieldBlocks, PhotoOrInitials, SkillPillStrip } from './additionalUi';
 
-const page: CSSProperties = {
-  width: A4_WIDTH_PX,
-  height: A4_HEIGHT_PX,
-  boxSizing: 'border-box',
-  overflow: 'hidden',
-};
+/** One printed A4 page. A background tile this tall repeats once per page, so every page gets the whole design. */
+const perPage = '297mm';
 
 export function PaperTemplate() {
   const { resumeData } = useResume();
@@ -18,7 +14,8 @@ export function PaperTemplate() {
   const ink = '#1e3a8a';
   const rust = '#b45309';
   return (
-    <div style={{ ...page, fontFamily: templateFonts.serif, backgroundColor: '#fffef7', padding: '32px 40px', color: '#292524' }}>
+    <div style={{ ...pageRoot, ...repeatPadding, fontFamily: templateFonts.serif, backgroundColor: '#fffef7', padding: '32px 40px', color: '#292524' }}>
+      <PageBackdrop background="#fffef7" />
       <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start', marginBottom: '20px', borderBottom: `3px double ${ink}`, paddingBottom: '18px' }}>
         <PhotoOrInitials photo={personalInfo.photo} name={personalInfo.fullName} size={88} rounded={4} border={`3px solid ${ink}`} initialsBg="#dbeafe" initialsColor={ink} />
         <div style={{ flex: 1 }}>
@@ -28,13 +25,13 @@ export function PaperTemplate() {
         </div>
       </div>
       {personalInfo.summary && (
-        <p style={{ fontSize: '10px', lineHeight: 1.75, textAlign: 'justify', margin: '0 0 16px', padding: '12px 14px', backgroundColor: '#fffbeb', borderLeft: `3px solid ${rust}` }}>{personalInfo.summary}</p>
+        <p style={{ ...repeatPadding, fontSize: '10px', lineHeight: 1.75, textAlign: 'justify', margin: '0 0 16px', padding: '12px 14px', backgroundColor: '#fffbeb', borderLeft: `3px solid ${rust}` }}>{personalInfo.summary}</p>
       )}
       {experiences.length > 0 && (
         <div style={{ marginBottom: '14px' }}>
-          <h2 style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.25em', color: ink, margin: '0 0 10px' }}>Selected work</h2>
+          <h2 style={{ ...keepWithNext, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.25em', color: ink, margin: '0 0 10px' }}>Selected work</h2>
           {experiences.map((exp) => (
-            <div key={exp.id} style={{ marginBottom: '12px', fontSize: '10px' }}>
+            <div key={exp.id} style={{ ...keepTogether, marginBottom: '12px', fontSize: '10px' }}>
               <strong>{exp.position}</strong>
               <span style={{ color: rust }}> · {exp.company}</span>
               <span style={{ color: '#78716c', fontSize: '9px' }}> ({exp.startDate}–{exp.current ? 'Present' : exp.endDate})</span>
@@ -45,15 +42,15 @@ export function PaperTemplate() {
       )}
       <div style={{ display: 'flex', gap: '24px', fontSize: '9px' }}>
         <div style={{ flex: 1 }}>
-          <strong style={{ color: ink }}>Education</strong>
+          <strong style={{ ...keepWithNext, display: 'block', color: ink }}>Education</strong>
           {education.map((e) => (
-            <div key={e.id} style={{ marginTop: '6px' }}>
+            <div key={e.id} style={{ ...keepTogether, marginTop: '6px' }}>
               {e.degree}, {e.institution}
             </div>
           ))}
         </div>
         <div style={{ flex: 1 }}>
-          <strong style={{ color: ink }}>Expertise</strong>
+          <strong style={{ ...keepWithNext, display: 'block', color: ink }}>Expertise</strong>
           <div style={{ marginTop: '8px' }}>
             <SkillPillStrip skills={skills} bgColors={['#e0e7ff', '#ffedd5', '#fce7f3']} textColors={[ink, rust, '#9d174d']} radius={4} />
           </div>
@@ -61,27 +58,30 @@ export function PaperTemplate() {
       </div>
       {projects.length > 0 && (
         <div style={{ marginTop: '14px', fontSize: '9px' }}>
-          <strong style={{ color: ink }}>Projects</strong>
+          <strong style={{ ...keepWithNext, display: 'block', color: ink }}>Projects</strong>
           {projects.map((p) => (
-            <div key={p.id} style={{ marginTop: '6px' }}>
+            <div key={p.id} style={{ ...keepTogether, marginTop: '6px' }}>
               {p.name} — {p.technologies}
             </div>
           ))}
         </div>
       )}
-      <CustomFieldBlocks sections={customFields} cardBg="#fffbeb" titleColor={ink} accentColor={rust} />
+      <div style={{ marginTop: '14px' }}>
+        <CustomFieldBlocks sections={customFields} cardBg="#fffbeb" titleColor={ink} accentColor={rust} />
+      </div>
     </div>
   );
 }
 
 export function GridTemplate() {
   const { resumeData } = useResume();
-  const { personalInfo, experiences, education, skills, customFields } = resumeData;
+  const { personalInfo, experiences, education, skills, projects, customFields } = resumeData;
   const colors = ['#fef3c7', '#dbeafe', '#fce7f3', '#d1fae5', '#e9d5ff'];
   return (
     <div
       style={{
-        ...page,
+        ...pageRoot,
+        ...repeatPadding,
         fontFamily: templateFonts.sans,
         backgroundColor: '#fafafa',
         backgroundImage: 'radial-gradient(#d4d4d8 1px, transparent 1px)',
@@ -89,6 +89,7 @@ export function GridTemplate() {
         padding: '28px 32px',
       }}
     >
+      <PageBackdrop background="#fafafa radial-gradient(#d4d4d8 1px, transparent 1px) 0 0 / 14px 14px" />
       <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '12px', marginBottom: '14px' }}>
         <div style={{ gridRow: 'span 2', backgroundColor: '#fff', padding: '18px', borderRadius: '16px', border: '1px solid #e4e4e7', boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
           <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
@@ -100,26 +101,38 @@ export function GridTemplate() {
           </div>
           {personalInfo.summary && <p style={{ margin: '14px 0 0', fontSize: '9px', lineHeight: 1.65, color: '#52525b' }}>{personalInfo.summary}</p>}
         </div>
-        <div style={{ backgroundColor: colors[0], padding: '14px', borderRadius: '12px', fontSize: '9px', color: '#713f12' }}>
+        <div style={{ ...keepTogether, backgroundColor: colors[0], padding: '14px', borderRadius: '12px', fontSize: '9px', color: '#713f12' }}>
           <strong>Contact</strong>
           <div style={{ marginTop: '6px', lineHeight: 1.6 }}>{personalInfo.email}</div>
         </div>
         <div style={{ backgroundColor: colors[3], padding: '14px', borderRadius: '12px', fontSize: '9px', color: '#14532d' }}>
           <strong>Education</strong>
           {education.map((e) => (
-            <div key={e.id} style={{ marginTop: '6px' }}>
+            <div key={e.id} style={{ ...keepTogether, marginTop: '6px' }}>
               {e.institution}
             </div>
           ))}
         </div>
       </div>
       {experiences.length > 0 && (
-        <div style={{ backgroundColor: '#fff', padding: '16px', borderRadius: '14px', marginBottom: '12px', border: '1px solid #e4e4e7' }}>
-          <div style={{ fontSize: '10px', fontWeight: 800, color: '#18181b', marginBottom: '10px' }}>Experience</div>
+        <div style={{ ...repeatPadding, backgroundColor: '#fff', padding: '16px', borderRadius: '14px', marginBottom: '12px', border: '1px solid #e4e4e7' }}>
+          <div style={{ ...keepWithNext, fontSize: '10px', fontWeight: 800, color: '#18181b', marginBottom: '10px' }}>Experience</div>
           {experiences.map((exp) => (
-            <div key={exp.id} style={{ marginBottom: '10px', fontSize: '9px' }}>
+            <div key={exp.id} style={{ ...keepTogether, marginBottom: '10px', fontSize: '9px' }}>
               <strong style={{ color: '#4f46e5' }}>{exp.position}</strong> @ {exp.company}
               {exp.description && <div style={{ color: '#71717a', marginTop: '4px' }}>{exp.description}</div>}
+            </div>
+          ))}
+        </div>
+      )}
+      {projects.length > 0 && (
+        <div style={{ ...repeatPadding, backgroundColor: '#fff', padding: '16px', borderRadius: '14px', marginBottom: '12px', border: '1px solid #e4e4e7' }}>
+          <div style={{ ...keepWithNext, fontSize: '10px', fontWeight: 800, color: '#18181b', marginBottom: '10px' }}>Projects</div>
+          {projects.map((project) => (
+            <div key={project.id} style={{ ...keepTogether, marginBottom: '10px', fontSize: '9px' }}>
+              <strong style={{ color: '#4f46e5' }}>{project.name}</strong>
+              {project.technologies && <span style={{ color: '#52525b' }}> · {project.technologies}</span>}
+              {project.description && <div style={{ color: '#71717a', marginTop: '4px' }}>{project.description}</div>}
             </div>
           ))}
         </div>
@@ -138,14 +151,13 @@ export function StripeTemplate() {
   const { resumeData } = useResume();
   const { personalInfo, experiences, education, skills, projects, customFields } = resumeData;
   const stripes = ['#7c3aed', '#6366f1', '#4f46e5', '#4338ca', '#312e81'];
+  // Five equal bands per page, repeating on every page rather than stretching over the whole document.
+  const bands = `linear-gradient(to bottom, ${stripes.map((c, i) => `${c} ${i * 20}% ${(i + 1) * 20}%`).join(', ')})`;
   return (
-    <div style={{ ...page, fontFamily: templateFonts.sans, display: 'flex', backgroundColor: '#faf5ff' }}>
-      <div style={{ width: '28px', display: 'flex', flexDirection: 'column' }}>
-        {stripes.map((c, i) => (
-          <div key={i} style={{ flex: 1, backgroundColor: c }} />
-        ))}
-      </div>
-      <div style={{ flex: 1, padding: '28px 32px' }}>
+    <div style={{ ...pageRoot, fontFamily: templateFonts.sans, display: 'flex', backgroundColor: '#faf5ff' }}>
+      <PageBackdrop background={`${bands} 0 0 / 28px ${perPage} repeat-y, #faf5ff`} />
+      <div style={{ width: '28px', flexShrink: 0, backgroundImage: bands, backgroundSize: `28px ${perPage}`, backgroundRepeat: 'repeat-y' }} />
+      <div style={{ ...repeatPadding, flex: 1, padding: '28px 32px' }}>
         <div style={{ display: 'flex', gap: '18px', marginBottom: '18px' }}>
           <PhotoOrInitials photo={personalInfo.photo} name={personalInfo.fullName} size={96} rounded={16} border="4px solid #a78bfa" initialsBg="#7c3aed" initialsColor="#fff" boxShadow="0 6px 20px rgba(124,58,237,0.35)" />
           <div>
@@ -154,9 +166,9 @@ export function StripeTemplate() {
             <p style={{ margin: '8px 0 0', fontSize: '10px', color: '#64748b' }}>{[personalInfo.email, personalInfo.phone, personalInfo.location].filter(Boolean).join(' · ')}</p>
           </div>
         </div>
-        {personalInfo.summary && <p style={{ margin: '0 0 16px', fontSize: '10px', lineHeight: 1.65, color: '#475569', padding: '14px', backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #e9d5ff' }}>{personalInfo.summary}</p>}
+        {personalInfo.summary && <p style={{ ...repeatPadding, margin: '0 0 16px', fontSize: '10px', lineHeight: 1.65, color: '#475569', padding: '14px', backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #e9d5ff' }}>{personalInfo.summary}</p>}
         {experiences.map((exp) => (
-          <div key={exp.id} style={{ marginBottom: '12px', padding: '12px 14px', backgroundColor: '#fff', borderRadius: '10px', boxShadow: '0 2px 10px rgba(124,58,237,0.08)' }}>
+          <div key={exp.id} style={{ ...keepTogether, marginBottom: '12px', padding: '12px 14px', backgroundColor: '#fff', borderRadius: '10px', boxShadow: '0 2px 10px rgba(124,58,237,0.08)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ fontSize: '12px', fontWeight: 800, color: '#1e1b4b' }}>{exp.position}</span>
               <span
@@ -174,18 +186,20 @@ export function StripeTemplate() {
             {exp.description && <p style={{ fontSize: '9px', color: '#64748b', margin: '6px 0 0' }}>{exp.description}</p>}
           </div>
         ))}
-        <div style={{ fontSize: '9px', marginTop: '12px', color: '#334155' }}>
+        <div style={{ ...keepTogether, fontSize: '9px', marginTop: '12px', color: '#334155' }}>
           <strong style={{ color: '#5b21b6' }}>Education:</strong> {education.map((e) => `${e.institution} (${e.degree})`).join(' · ')}
         </div>
         <div style={{ marginTop: '10px' }}>
           <SkillPillStrip skills={skills} bgColors={['#ede9fe', '#fae8ff', '#e0e7ff', '#fce7f3']} textColors={['#5b21b6', '#86198f', '#3730a3', '#9d174d']} />
         </div>
         {projects.length > 0 && (
-          <div style={{ fontSize: '9px', marginTop: '10px' }}>
+          <div style={{ ...keepTogether, fontSize: '9px', marginTop: '10px' }}>
             <strong style={{ color: '#5b21b6' }}>Projects:</strong> {projects.map((p) => p.name).join(', ')}
           </div>
         )}
-        <CustomFieldBlocks sections={customFields} cardBg="#f5f3ff" titleColor="#312e81" accentColor="#7c3aed" />
+        <div style={{ marginTop: '12px' }}>
+          <CustomFieldBlocks sections={customFields} cardBg="#f5f3ff" titleColor="#312e81" accentColor="#7c3aed" />
+        </div>
       </div>
     </div>
   );
@@ -194,8 +208,23 @@ export function StripeTemplate() {
 export function PulseTemplate() {
   const { resumeData } = useResume();
   const { personalInfo, experiences, education, skills, projects, customFields } = resumeData;
+  // The wash is sized to one page so every page gets it whole, instead of one gradient stretched over the document.
+  const wash = 'linear-gradient(160deg, #fdf4ff 0%, #faf5ff 40%, #eef2ff 100%)';
+  const washSize = `794px ${perPage}`;
   return (
-    <div style={{ ...page, fontFamily: templateFonts.sans, background: 'linear-gradient(160deg, #fdf4ff 0%, #faf5ff 40%, #eef2ff 100%)', padding: '32px 36px' }}>
+    <div
+      style={{
+        ...pageRoot,
+        ...repeatPadding,
+        fontFamily: templateFonts.sans,
+        backgroundColor: '#faf5ff',
+        backgroundImage: wash,
+        backgroundSize: washSize,
+        backgroundRepeat: 'repeat-y',
+        padding: '32px 36px',
+      }}
+    >
+      <PageBackdrop background={`${wash} 0 0 / ${washSize} repeat-y, #faf5ff`} />
       <div style={{ textAlign: 'center', marginBottom: '22px' }}>
         <div
           style={{
@@ -244,10 +273,10 @@ export function PulseTemplate() {
         <p style={{ margin: '8px 0 0', fontSize: '10px', color: '#6b7280' }}>{[personalInfo.email, personalInfo.location].filter(Boolean).join(' · ')}</p>
       </div>
       {personalInfo.summary && (
-        <div style={{ padding: '14px 16px', borderRadius: '14px', backgroundColor: '#fff', marginBottom: '16px', fontSize: '10px', lineHeight: 1.65, color: '#4b5563', boxShadow: '0 2px 16px rgba(168,85,247,0.12)' }}>{personalInfo.summary}</div>
+        <div style={{ ...repeatPadding, padding: '14px 16px', borderRadius: '14px', backgroundColor: '#fff', marginBottom: '16px', fontSize: '10px', lineHeight: 1.65, color: '#4b5563', boxShadow: '0 2px 16px rgba(168,85,247,0.12)' }}>{personalInfo.summary}</div>
       )}
       {experiences.map((exp) => (
-        <div key={exp.id} style={{ marginBottom: '12px', padding: '14px', backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #f3e8ff' }}>
+        <div key={exp.id} style={{ ...keepTogether, marginBottom: '12px', padding: '14px', backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #f3e8ff' }}>
           <div style={{ fontSize: '12px', fontWeight: 800, color: '#6b21a8' }}>{exp.position}</div>
           <div style={{ fontSize: '10px', color: '#9333ea', fontWeight: 600 }}>{exp.company}</div>
           {exp.description && <p style={{ fontSize: '9px', color: '#6b7280', margin: '6px 0 0' }}>{exp.description}</p>}
@@ -256,7 +285,7 @@ export function PulseTemplate() {
       <div style={{ marginTop: '8px', display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center' }}>
         <SkillPillStrip skills={skills} bgColors={['#fae8ff', '#ede9fe', '#cffafe', '#fce7f3']} textColors={['#86198f', '#5b21b6', '#0e7490', '#9d174d']} radius={999} />
       </div>
-      <div style={{ marginTop: '14px', fontSize: '9px', textAlign: 'center', color: '#6b7280' }}>
+      <div style={{ ...keepTogether, marginTop: '14px', fontSize: '9px', textAlign: 'center', color: '#6b7280' }}>
         {education.map((e) => (
           <span key={e.id}>
             {e.institution} · {e.degree}
@@ -265,11 +294,13 @@ export function PulseTemplate() {
         ))}
       </div>
       {projects.length > 0 && (
-        <div style={{ marginTop: '12px', fontSize: '9px', textAlign: 'center', color: '#7c3aed' }}>
+        <div style={{ ...keepTogether, marginTop: '12px', fontSize: '9px', textAlign: 'center', color: '#7c3aed' }}>
           {projects.map((p) => p.name).join(' · ')}
         </div>
       )}
-      <CustomFieldBlocks sections={customFields} cardBg="#faf5ff" titleColor="#581c87" accentColor="#a855f7" />
+      <div style={{ marginTop: '14px' }}>
+        <CustomFieldBlocks sections={customFields} cardBg="#faf5ff" titleColor="#581c87" accentColor="#a855f7" />
+      </div>
     </div>
   );
 }
@@ -278,7 +309,8 @@ export function SummitTemplate() {
   const { resumeData } = useResume();
   const { personalInfo, experiences, education, skills, projects, customFields } = resumeData;
   return (
-    <div style={{ ...page, fontFamily: templateFonts.sans, backgroundColor: '#f1f5f9' }}>
+    <div style={{ ...pageRoot, fontFamily: templateFonts.sans, backgroundColor: '#f1f5f9' }}>
+      <PageBackdrop background="#f1f5f9" />
       <div
         style={{
           height: '132px',
@@ -299,38 +331,43 @@ export function SummitTemplate() {
           </div>
         </div>
       </div>
-      <div style={{ marginTop: '-28px', marginLeft: '32px', marginRight: '32px', backgroundColor: '#fff', borderRadius: '14px', padding: '22px', boxShadow: '0 8px 32px rgba(15,23,42,0.12)' }}>
-        {personalInfo.summary && <p style={{ fontSize: '10px', lineHeight: 1.65, color: '#475569', margin: '0 0 16px' }}>{personalInfo.summary}</p>}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '18px', fontSize: '9px' }}>
-          <div>
-            <h3 style={{ fontSize: '10px', color: '#0f172a', margin: '0 0 10px', letterSpacing: '0.1em' }}>EXPERIENCE</h3>
-            {experiences.map((exp) => (
-              <div key={exp.id} style={{ marginBottom: '12px' }}>
-                <strong style={{ color: '#1e293b' }}>{exp.position}</strong>
-                <div style={{ color: '#64748b' }}>{exp.company}</div>
-                {exp.description && <p style={{ margin: '4px 0 0', color: '#64748b', lineHeight: 1.45 }}>{exp.description}</p>}
-              </div>
-            ))}
-          </div>
-          <div>
-            <h3 style={{ fontSize: '10px', color: '#0f172a', margin: '0 0 10px', letterSpacing: '0.1em' }}>EDUCATION & SKILLS</h3>
-            {education.map((edu) => (
-              <div key={edu.id} style={{ marginBottom: '8px', color: '#334155' }}>
-                {edu.institution} — {edu.degree}
-              </div>
-            ))}
-            <div style={{ marginTop: '10px' }}>
-              <SkillPillStrip skills={skills} bgColors={['#e0f2fe', '#dbeafe', '#cffafe', '#e0e7ff']} textColors={['#0369a1', '#1d4ed8', '#0e7490', '#3730a3']} />
+      {/* The slate margin around the card repeats on every page; the card still tucks 28px under the hero on page one. */}
+      <div style={{ ...repeatPadding, padding: '24px 32px' }}>
+        <div style={{ ...repeatPadding, marginTop: '-52px', backgroundColor: '#fff', borderRadius: '14px', padding: '22px', boxShadow: '0 8px 32px rgba(15,23,42,0.12)' }}>
+          {/* The hero paints over the card's top 28px; this keeps the card's text out from under it. */}
+          <div style={{ height: '28px' }} />
+          {personalInfo.summary && <p style={{ fontSize: '10px', lineHeight: 1.65, color: '#475569', margin: '0 0 16px' }}>{personalInfo.summary}</p>}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '18px', fontSize: '9px' }}>
+            <div>
+              <h3 style={{ ...keepWithNext, fontSize: '10px', color: '#0f172a', margin: '0 0 10px', letterSpacing: '0.1em' }}>EXPERIENCE</h3>
+              {experiences.map((exp) => (
+                <div key={exp.id} style={{ ...keepTogether, marginBottom: '12px' }}>
+                  <strong style={{ color: '#1e293b' }}>{exp.position}</strong>
+                  <div style={{ color: '#64748b' }}>{exp.company}</div>
+                  {exp.description && <p style={{ margin: '4px 0 0', color: '#64748b', lineHeight: 1.45 }}>{exp.description}</p>}
+                </div>
+              ))}
             </div>
-            {projects.length > 0 && (
-              <div style={{ marginTop: '12px' }}>
-                <strong style={{ color: '#0ea5e9' }}>Projects:</strong> {projects.map((p) => p.name).join(', ')}
+            <div>
+              <h3 style={{ ...keepWithNext, fontSize: '10px', color: '#0f172a', margin: '0 0 10px', letterSpacing: '0.1em' }}>EDUCATION & SKILLS</h3>
+              {education.map((edu) => (
+                <div key={edu.id} style={{ ...keepTogether, marginBottom: '8px', color: '#334155' }}>
+                  {edu.institution} — {edu.degree}
+                </div>
+              ))}
+              <div style={{ marginTop: '10px' }}>
+                <SkillPillStrip skills={skills} bgColors={['#e0f2fe', '#dbeafe', '#cffafe', '#e0e7ff']} textColors={['#0369a1', '#1d4ed8', '#0e7490', '#3730a3']} />
               </div>
-            )}
+              {projects.length > 0 && (
+                <div style={{ ...keepTogether, marginTop: '12px' }}>
+                  <strong style={{ color: '#0ea5e9' }}>Projects:</strong> {projects.map((p) => p.name).join(', ')}
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-        <div style={{ marginTop: '14px' }}>
-          <CustomFieldBlocks sections={customFields} cardBg="#f8fafc" titleColor="#0f172a" accentColor="#0ea5e9" />
+          <div style={{ marginTop: '14px' }}>
+            <CustomFieldBlocks sections={customFields} cardBg="#f8fafc" titleColor="#0f172a" accentColor="#0ea5e9" />
+          </div>
         </div>
       </div>
     </div>

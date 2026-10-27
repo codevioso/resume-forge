@@ -1,5 +1,6 @@
 import { useResume } from '../../context/ResumeContext';
 import { templateFonts } from '../fonts';
+import { keepTogether, keepWithNext, pageRoot, repeatPadding } from '../paging';
 
 export function MinimalTemplate() {
   const { resumeData } = useResume();
@@ -10,12 +11,10 @@ export function MinimalTemplate() {
   return (
     <div
       style={{
-        width: '794px',
-        height: '1123px',
-        backgroundColor: '#ffffff',
+        ...pageRoot,
+        ...repeatPadding,
         fontFamily: fonts.minimal,
         padding: '48px 56px',
-        boxSizing: 'border-box',
       }}
     >
       <div style={{ textAlign: 'center', marginBottom: '32px', paddingBottom: '24px', borderBottom: '1px solid #e5e7eb' }}>
@@ -62,11 +61,11 @@ export function MinimalTemplate() {
       )}
       {experiences.length > 0 && (
         <div style={{ marginBottom: '28px' }}>
-          <h2 style={{ fontSize: '11px', fontWeight: 400, letterSpacing: '3px', color: '#374151', marginBottom: '18px', textAlign: 'center', margin: '0 0 18px 0' }}>
+          <h2 style={{ ...keepWithNext, fontSize: '11px', fontWeight: 400, letterSpacing: '3px', color: '#374151', marginBottom: '18px', textAlign: 'center', margin: '0 0 18px 0' }}>
             EXPERIENCE
           </h2>
           {experiences.map((exp, index) => (
-            <div key={exp.id} style={{ marginBottom: index === experiences.length - 1 ? 0 : '18px' }}>
+            <div key={exp.id} style={{ ...keepTogether, marginBottom: index === experiences.length - 1 ? 0 : '18px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                 <h3 style={{ fontSize: '13px', fontWeight: 600, color: '#111827', margin: 0 }}>{exp.position}</h3>
                 <span style={{ fontSize: '10px', color: '#9ca3af' }}>
@@ -82,9 +81,9 @@ export function MinimalTemplate() {
       <div style={{ display: 'flex', gap: '48px' }}>
         {education.length > 0 && (
           <div style={{ flex: 1 }}>
-            <h2 style={{ fontSize: '11px', fontWeight: 400, letterSpacing: '3px', color: '#374151', margin: '0 0 16px 0' }}>EDUCATION</h2>
+            <h2 style={{ ...keepWithNext, fontSize: '11px', fontWeight: 400, letterSpacing: '3px', color: '#374151', margin: '0 0 16px 0' }}>EDUCATION</h2>
             {education.map((edu, index) => (
-              <div key={edu.id} style={{ marginBottom: index === education.length - 1 ? 0 : '14px' }}>
+              <div key={edu.id} style={{ ...keepTogether, marginBottom: index === education.length - 1 ? 0 : '14px' }}>
                 <h3 style={{ fontSize: '12px', fontWeight: 600, color: '#111827', margin: 0 }}>{edu.institution}</h3>
                 <p style={{ fontSize: '10px', color: '#6b7280', margin: '3px 0 0 0' }}>
                   {edu.degree}
@@ -99,17 +98,17 @@ export function MinimalTemplate() {
         )}
         {skills.length > 0 && (
           <div style={{ flex: 1 }}>
-            <h2 style={{ fontSize: '11px', fontWeight: 400, letterSpacing: '3px', color: '#374151', margin: '0 0 16px 0' }}>SKILLS</h2>
+            <h2 style={{ ...keepWithNext, fontSize: '11px', fontWeight: 400, letterSpacing: '3px', color: '#374151', margin: '0 0 16px 0' }}>SKILLS</h2>
             <p style={{ fontSize: '10px', color: '#4b5563', lineHeight: '2' }}>{skills.map((s) => s.name).filter(Boolean).join('  •  ')}</p>
           </div>
         )}
       </div>
       {projects.length > 0 && (
         <div style={{ marginTop: '28px' }}>
-          <h2 style={{ fontSize: '11px', fontWeight: 400, letterSpacing: '3px', color: '#374151', margin: '0 0 16px 0' }}>PROJECTS</h2>
+          <h2 style={{ ...keepWithNext, fontSize: '11px', fontWeight: 400, letterSpacing: '3px', color: '#374151', margin: '0 0 16px 0' }}>PROJECTS</h2>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
             {projects.map((project) => (
-              <div key={project.id} style={{ width: 'calc(50% - 8px)' }}>
+              <div key={project.id} style={{ ...keepTogether, width: 'calc(50% - 8px)' }}>
                 <h3 style={{ fontSize: '11px', fontWeight: 600, color: '#111827', margin: 0 }}>{project.name}</h3>
                 {project.technologies && <p style={{ fontSize: '9px', color: '#9ca3af', margin: '3px 0 0 0' }}>{project.technologies}</p>}
                 {project.description && <p style={{ fontSize: '9px', color: '#6b7280', marginTop: '4px', lineHeight: '1.5', margin: '4px 0 0 0' }}>{project.description}</p>}
@@ -122,9 +121,9 @@ export function MinimalTemplate() {
         <div style={{ marginTop: '28px', display: 'flex', flexWrap: 'wrap', gap: '28px' }}>
           {validCustomFields.map((cf) => (
             <div key={cf.id} style={{ width: validCustomFields.length === 1 ? '100%' : 'calc(50% - 14px)' }}>
-              <h2 style={{ fontSize: '11px', fontWeight: 400, letterSpacing: '3px', color: '#374151', margin: '0 0 14px 0' }}>{cf.sectionTitle.toUpperCase()}</h2>
+              <h2 style={{ ...keepWithNext, fontSize: '11px', fontWeight: 400, letterSpacing: '3px', color: '#374151', margin: '0 0 14px 0' }}>{cf.sectionTitle.toUpperCase()}</h2>
               {cf.items.map((item, idx) => (
-                <div key={item.id} style={{ marginBottom: idx === cf.items.length - 1 ? 0 : '10px' }}>
+                <div key={item.id} style={{ ...keepTogether, marginBottom: idx === cf.items.length - 1 ? 0 : '10px' }}>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
                     <span style={{ fontSize: '11px', fontWeight: 600, color: '#111827' }}>{item.title}</span>
                     {item.subtitle && <span style={{ fontSize: '10px', color: '#9ca3af' }}>— {item.subtitle}</span>}
