@@ -1,17 +1,22 @@
 import type { RefObject } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Check, PenLine } from 'lucide-react';
+import { ArrowRight, Check, Files, PenLine } from 'lucide-react';
 import { PlaneMark } from '../BrandMark';
 import { useResume } from '../../context/ResumeContext';
+import { readSignedInHint, useAccount } from '../account/authHelpers';
 import { templates } from '../../data/templates';
 import { Container, scrollToSection } from './shared';
 import { HeroVisual } from './HeroVisual';
 
-const TRUST = ['Free to use', 'No sign-up', 'Stays on your device'];
+const TRUST = ['Free to use', 'No account needed', 'Syncs if you sign in'];
 
 export function Hero({ ctaRef }: { ctaRef: RefObject<HTMLDivElement | null> }) {
   // A resume already in progress (saved in this browser) gets a way straight back in.
   const { selectedTemplate } = useResume();
+  // Signed in: the way back in is the list of saved resumes. Until the session
+  // is known, assume what this browser was last time, so the buttons do not swap.
+  const { user, isPending } = useAccount();
+  const signedIn = user ? true : isPending ? readSignedInHint() : false;
 
   return (
     <section aria-labelledby="hero-title" className="relative isolate">
@@ -55,7 +60,8 @@ export function Hero({ ctaRef }: { ctaRef: RefObject<HTMLDivElement | null> }) {
             style={{ animationDelay: '120ms' }}
           >
             Pick a professionally designed template, fill in your details with a live preview, and download a
-            pixel-perfect PDF. Free, with no sign-up, and saved on your device instead of our servers.
+            pixel-perfect PDF. Free, with no account needed: it&rsquo;s saved on your device, or to your account if you
+            sign in.
           </p>
 
           <div
@@ -63,11 +69,23 @@ export function Hero({ ctaRef }: { ctaRef: RefObject<HTMLDivElement | null> }) {
             className="mt-8 flex flex-col gap-3 motion-safe:animate-rise sm:flex-row sm:justify-center lg:justify-start"
             style={{ animationDelay: '180ms' }}
           >
-            <Link to="/templates" className="btn-primary btn-lg group">
-              Create my resume
-              <ArrowRight className="size-5 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
-            </Link>
-            {selectedTemplate ? (
+            {signedIn ? (
+              <Link to="/resumes" className="btn-primary btn-lg group">
+                <Files className="size-5" aria-hidden="true" />
+                My resumes
+                <ArrowRight className="size-5 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+              </Link>
+            ) : (
+              <Link to="/templates" className="btn-primary btn-lg group">
+                Create my resume
+                <ArrowRight className="size-5 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+              </Link>
+            )}
+            {signedIn ? (
+              <Link to="/templates" className="btn-secondary btn-lg">
+                Browse templates
+              </Link>
+            ) : selectedTemplate ? (
               <Link to="/editor" className="btn-secondary btn-lg">
                 <PenLine className="size-5 text-aqua-700" aria-hidden="true" />
                 Continue my resume

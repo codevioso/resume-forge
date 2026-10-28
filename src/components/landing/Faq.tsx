@@ -8,15 +8,23 @@ import { Container, SECTION_Y, SectionHeader } from './shared';
 const FAQS: { q: string; a: ReactNode }[] = [
   {
     q: `Is ${APP_NAME} really free?`,
-    a: `Yes. All ${templates.length} templates and the PDF export are free to use.`,
+    a: `Yes. All ${templates.length} templates, the PDF export and accounts are free to use.`,
   },
   {
-    q: 'Do I need to create an account?',
-    a: 'No. There is no sign-up: pick a template and start typing.',
+    q: 'Do I need an account?',
+    a: 'No. Pick a template and start typing; your resume is saved in this browser. A free account is optional: with one, your resumes are saved to your account, so you can keep several and open them on any device.',
   },
   {
     q: 'Where is my resume stored?',
-    a: 'In your own browser, saved as you type. It is not stored on our servers; it is sent only for the moment it takes to create your PDF. Because it lives in this browser, clearing your browser data removes it, and it will not appear on your other devices.',
+    a: 'Without an account, in your own browser, saved as you type. It is not stored on our servers, so clearing your browser data removes it and it will not appear on your other devices. If you sign in, your resumes are stored in your account on our servers, so they sync across your devices. Either way, a resume is sent to make your PDF only for the moment that takes.',
+  },
+  {
+    q: 'What happens to my resume when I create an account?',
+    a: 'The resume you were working on in this browser moves into your account the first time you sign in on this device, so you carry on where you left off.',
+  },
+  {
+    q: 'Can I delete my account?',
+    a: 'Yes, any time, from your Account page. Your account and every resume saved in it are deleted permanently.',
   },
   {
     q: 'Will the PDF look like the preview?',
@@ -50,7 +58,7 @@ export function Faq() {
           tinted
           eyebrow="FAQ"
           title="Questions, answered"
-          lede="The short version: it's free, there's no sign-up, and your resume stays in your browser."
+          lede="The short version: it's free, no account is needed, and without one your resume never leaves your browser."
           className="lg:sticky lg:top-28 lg:self-start"
         />
 

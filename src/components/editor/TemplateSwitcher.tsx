@@ -27,9 +27,15 @@ const thumbHeight = thumbHeightFor(
 export function TemplateSwitcher({
   template,
   onSelect,
+  galleryLink = true,
 }: {
   template: Template;
   onSelect: (template: Template) => void;
+  /**
+   * Offer "Open the gallery". Off for a saved resume: for a signed-in user the
+   * gallery starts a new resume rather than restyling this one.
+   */
+  galleryLink?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -120,13 +126,15 @@ export function TemplateSwitcher({
           </div>
           <div className="flex items-center justify-between border-t border-slate-100 bg-slate-50/70 px-5 py-2.5">
             <span className="text-xs text-slate-500">Previews use sample content.</span>
-            <Link
-              to="/templates"
-              className="inline-flex min-h-9 items-center gap-1.5 rounded-lg px-2 text-sm font-semibold text-aqua-700 hover:bg-aqua-50 hover:text-aqua-800"
-            >
-              Open the gallery
-              <ArrowRight className="size-4" aria-hidden="true" />
-            </Link>
+            {galleryLink && (
+              <Link
+                to="/templates"
+                className="inline-flex min-h-9 items-center gap-1.5 rounded-lg px-2 text-sm font-semibold text-aqua-700 hover:bg-aqua-50 hover:text-aqua-800"
+              >
+                Open the gallery
+                <ArrowRight className="size-4" aria-hidden="true" />
+              </Link>
+            )}
           </div>
         </div>
       )}

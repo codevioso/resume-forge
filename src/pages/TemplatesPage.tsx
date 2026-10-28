@@ -1,9 +1,16 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Loader2 } from 'lucide-react';
 import { templates } from '../data/templates';
 import { useResume } from '../context/ResumeContext';
 import { APP_NAME } from '../constants/brand';
 import type { Template } from '../types/resume';
+import { useSession } from '../lib/authClient';
+import { ApiError, createResume } from '../lib/resumesApi';
+import { PlaneMark } from '../components/BrandMark';
+import { ToastViewport, useToasts } from '../components/editor/Toasts';
+import { useMediaQuery } from '../components/editor/useEnvironment';
 import {
   POPULAR_TEMPLATE_IDS,
   canPreviewWithOwnResume,
@@ -22,13 +29,26 @@ import { TemplateCard } from '../components/gallery/TemplateCard';
  * The template gallery: step one of the flow. Pick a design (or look at one
  * up close first), then continue to the editor.
  *
+ * Guests choose the design of the one resume kept in their browser. For a
+ * signed-in user (and `?new=1`, the "New resume" button on My resumes)
+ * continuing creates a new resume in their account with that design and
+ * opens it; the browser resume is left alone.
+ *
  * The category filter lives in the URL (`?category=tech`), so it survives
  * Back from the editor and can be linked to.
  */
 export function TemplatesPage() {
   const navigate = useNavigate();
-  const { selectedTemplate, setSelectedTemplate, resumeData } = useResume();
+  const { selectedTemplate: guestTemplate, setSelectedTemplate: setGuestTemplate, resumeData } = useResume();
   const [searchParams, setSearchParams] = useSearchParams();
+  const { data: session } = useSession();
+  const askedForNew = searchParams.get('new') === '1';
+  const newResumeFlow = askedForNew || Boolean(session?.user);
+  const [picked, setPicked] = useState<Template | null>(null);
+  const selectedTemplate = newResumeFlow ? picked : guestTemplate;
+  const setSelectedTemplate = newResumeFlow ? setPicked : setGuestTemplate;
+  const { creating, create, toasts, dismissToast } = useCreateResume();
+  const isPhone = useMediaQuery('(max-width: 767px)');
 
   const categoryParam = searchParams.get('category');
   const category: CategoryFilterValue = isCategory(categoryParam) ? categoryParam : 'all';
@@ -38,7 +58,8 @@ export function TemplatesPage() {
     [category],
   );
 
-  const canUseOwn = canPreviewWithOwnResume(resumeData);
+  // The browser resume is the guest's; a new saved resume starts empty.
+  const canUseOwn = !newResumeFlow && canPreviewWithOwnResume(resumeData);
   const [content, setContent] = useState<PreviewContent>('sample');
   const previewData = canUseOwn && content === 'mine' ? resumeData : undefined;
 
@@ -117,23 +138,29 @@ export function TemplatesPage() {
     if (value === category) return;
     const anchor = filterAnchorRef.current;
     scrollToResults.current = !!anchor && anchor.getBoundingClientRect().top < stickyTop() - 1;
-    setSearchParams(value === 'all' ? {} : { category: value }, { replace: true });
+    const next = new URLSearchParams(searchParams);
+    if (value === 'all') next.delete('category');
+    else next.set('category', value);
+    setSearchParams(next, { replace: true });
   };
 
   const goBack = () => {
     const idx = (window.history.state as { idx?: number } | null)?.idx ?? 0;
     if (idx > 0) navigate(-1);
-    else navigate('/');
+    else navigate(askedForNew ? '/resumes' : '/');
   };
 
   const handleContinue = () => {
-    if (selectedTemplate) navigate('/editor');
+    if (!selectedTemplate) return;
+    if (newResumeFlow) void create(selectedTemplate);
+    else navigate('/editor');
   };
 
   const chooseAndContinue = (template: Template) => {
     setSelectedTemplate(template);
     setPreviewId(null);
-    navigate('/editor');
+    if (newResumeFlow) void create(template);
+    else navigate('/editor');
   };
 
   return (
@@ -150,7 +177,7 @@ export function TemplatesPage() {
           <section className="mx-auto max-w-7xl px-4 pt-6 pb-5 md:px-6 md:pt-12 md:pb-8 lg:px-8">
             <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between lg:gap-10">
               <div className="max-w-2xl">
-                <p className="eyebrow">Step 1 of 3</p>
+                <p className="eyebrow">{newResumeFlow ? 'New resume' : 'Step 1 of 3'}</p>
                 <h1
                   ref={headingRef}
                   className="mt-2 text-[28px] leading-[1.15] font-bold tracking-tight text-ink-900 sm:text-4xl lg:text-[2.75rem]"
@@ -241,6 +268,80 @@ export function TemplatesPage() {
           returnFocusTo={previewOpener}
         />
       )}
+
+      {creating && <CreatingOverlay template={creating} />}
+      <ToastViewport
+        toasts={toasts}
+        onDismiss={dismissToast}
+        placement={isPhone ? 'bottom' : 'top-right'}
+        style={isPhone ? { bottom: 'calc(env(safe-area-inset-bottom) + 5rem)' } : undefined}
+      />
     </>
+  );
+}
+
+/**
+ * Create a saved resume with a template and open it. Problems (the account's
+ * limit, no connection) are toasts; a session that ended goes to sign-in and
+ * comes back here.
+ */
+function useCreateResume() {
+  const navigate = useNavigate();
+  const [creating, setCreating] = useState<Template | null>(null);
+  const { toasts, showToast, dismissToast } = useToasts();
+
+  const create = async (template: Template) => {
+    if (creating) return;
+    setCreating(template);
+    try {
+      const resume = await createResume({ templateId: template.id });
+      navigate(`/editor/${resume.id}`);
+    } catch (err) {
+      setCreating(null);
+      const status = err instanceof ApiError ? err.status : -1;
+      if (status === 401) {
+        navigate(`/signin?next=${encodeURIComponent('/templates?new=1')}`);
+      } else if (status === 409) {
+        showToast({ tone: 'error', title: 'No room for another resume', message: (err as Error).message });
+      } else if (status === 0) {
+        showToast({
+          tone: 'offline',
+          title: "You're offline",
+          message: "Creating a resume needs a connection. Try again when you're back online.",
+        });
+      } else {
+        showToast({
+          tone: 'error',
+          title: "Couldn't create the resume",
+          message: err instanceof Error ? err.message : 'Please try again.',
+        });
+      }
+    }
+  };
+
+  return { creating, create, toasts, dismissToast };
+}
+
+/** While the new resume is being created: the page holds still under a short message. */
+function CreatingOverlay({ template }: { template: Template }) {
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[80] grid place-items-center bg-white/75 px-6 backdrop-blur-sm motion-safe:animate-fade-in"
+      role="status"
+      aria-live="assertive"
+    >
+      <div className="flex flex-col items-center text-center">
+        <span className="relative grid size-16 place-items-center rounded-2xl bg-white shadow-lift ring-1 ring-slate-200">
+          <PlaneMark className="h-7" />
+          <Loader2
+            className="absolute -right-1.5 -bottom-1.5 size-6 animate-spin rounded-full bg-white p-0.5 text-aqua-700"
+            aria-hidden="true"
+          />
+        </span>
+        <p className="mt-5 text-lg font-semibold text-ink-900">Creating your resume…</p>
+        <p className="mt-1 text-sm text-slate-600">With the {template.name} design</p>
+      </div>
+    </div>,
+    document.body,
   );
 }

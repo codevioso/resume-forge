@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, ChevronRight, CircleQuestionMark, LayoutTemplate, ListOrdered, Menu, Sparkles, X } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { BrandMark } from '../BrandMark';
+import { AccountMenu, AccountSheetSection } from '../account/AccountMenu';
 import { APP_NAME } from '../../constants/brand';
 import { cn } from '../../utils/cn';
 import { Container, IconChip, scrollToSection } from './shared';
@@ -88,7 +89,9 @@ export function LandingNav() {
         </nav>
 
         <div className="flex items-center justify-end gap-1">
-          <Link to="/templates" className="btn-primary group hidden md:inline-flex">
+          <AccountMenu className="hidden md:flex" />
+          <AccountMenu compact className="md:hidden" />
+          <Link to="/templates" className="btn-primary group ml-1 hidden md:inline-flex">
             Create my resume
             <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
           </Link>
@@ -201,11 +204,13 @@ function MenuSheet({ onClose }: { onClose: () => void }) {
           </ul>
         </nav>
 
-        <Link to="/templates" className="btn-primary btn-lg mt-4 w-full" onClick={onClose}>
+        <AccountSheetSection onNavigate={onClose} />
+
+        <Link to="/templates" className="btn-primary btn-lg mt-3 w-full" onClick={onClose}>
           Create my resume
           <ArrowRight className="size-5" aria-hidden="true" />
         </Link>
-        <p className="mt-3 mb-1 text-center text-xs text-slate-500">Free · No sign-up · Saved on your device</p>
+        <p className="mt-3 mb-1 text-center text-xs text-slate-500">Free · No account needed</p>
       </div>
     </div>
   );

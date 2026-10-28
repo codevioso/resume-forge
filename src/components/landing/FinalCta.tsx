@@ -42,7 +42,8 @@ export function FinalCta({ sectionRef }: { sectionRef: RefObject<HTMLElement | n
             Cleared for takeoff?
           </h2>
           <p className="mx-auto mt-4 max-w-lg text-base leading-relaxed text-ink-200 sm:text-lg">
-            Pick a template, fill in your details and download your PDF. Free, with <span className="whitespace-nowrap">no sign-up</span>.
+            Pick a template, fill in your details and download your PDF. Free, with{' '}
+            <span className="whitespace-nowrap">no account needed</span>.
           </p>
           <div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row">
             <Link to="/templates" className="btn-accent btn-lg group">

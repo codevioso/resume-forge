@@ -28,7 +28,7 @@ const FEATURES: { icon: LucideIcon; title: string; body: string }[] = [
   {
     icon: Save,
     title: 'Saved as you type',
-    body: 'Your resume is saved in your browser while you work. Close the tab and pick up right where you left off.',
+    body: 'Saved in your browser while you work, or to your free account so it is on all your devices. Close the tab and pick up where you left off.',
   },
   {
     icon: WifiOff,

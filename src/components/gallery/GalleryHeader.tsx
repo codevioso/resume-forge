@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { BrandMark } from '../BrandMark';
+import { AccountMenu } from '../account/AccountMenu';
 import { APP_NAME } from '../../constants/brand';
 import type { Template } from '../../types/resume';
 import { cn } from '../../utils/cn';
@@ -82,7 +83,7 @@ export function GalleryHeader({
             Choose Your Template
           </span>
         </div>
-        <span className="size-11 shrink-0 md:hidden" aria-hidden="true" />
+        <AccountMenu compact className="md:hidden" />
 
         {/* Desktop. */}
         <div className="hidden min-w-0 flex-1 items-center gap-4 md:flex">
@@ -106,6 +107,8 @@ export function GalleryHeader({
             Continue
             <ArrowRight className="size-4" aria-hidden="true" />
           </button>
+          <span className="h-6 w-px bg-slate-200" aria-hidden="true" />
+          <AccountMenu className="-ml-2 -mr-1.5" />
         </div>
       </div>
     </header>

@@ -1,18 +1,19 @@
 import type { LucideIcon } from 'lucide-react';
-import { Check, FileDown, Laptop, Lock, Server } from 'lucide-react';
+import { Check, Cloud, FileDown, Laptop, Lock } from 'lucide-react';
 import { APP_NAME } from '../../constants/brand';
 import { cn } from '../../utils/cn';
 import { Container } from './shared';
 
 const POINTS = [
-  'Saved in your own browser as you type',
-  'Never stored on our servers',
+  'No account: saved only in your own browser, never on our servers',
+  'With a free account: saved to your account and synced across your devices',
+  'Delete your account, and every resume in it, any time',
   'Sent only for the moment it takes to make your PDF',
 ];
 
 const ROWS: { icon: LucideIcon; place: string; detail: string; status: string; tone: 'mint' | 'slate' | 'aqua' }[] = [
-  { icon: Laptop, place: 'Your browser', detail: 'Saved as you type', status: 'Stored here', tone: 'mint' },
-  { icon: Server, place: 'Our servers', detail: 'Nothing is kept there', status: 'Not stored', tone: 'slate' },
+  { icon: Laptop, place: 'Your browser', detail: 'Without an account, it stays here', status: 'Default', tone: 'mint' },
+  { icon: Cloud, place: 'Your account', detail: 'Only if you sign in; synced', status: 'Your choice', tone: 'slate' },
   { icon: FileDown, place: 'PDF export', detail: 'Sent once to make your PDF', status: 'Momentary', tone: 'aqua' },
 ];
 
@@ -44,8 +45,8 @@ export function PrivacyBand() {
                 Your resume stays yours.
               </h2>
               <p className="mt-4 text-base leading-relaxed text-slate-600 sm:text-lg">
-                A resume holds your name, phone number and work history. That belongs on your device, so that is
-                where {APP_NAME} keeps it.
+                A resume holds your name, phone number and work history. Without an account, {APP_NAME} keeps it on
+                your device and nowhere else. Sign in only if you want it in your account, on every device.
               </p>
               <ul className="mt-6 space-y-3">
                 {POINTS.map((p) => (

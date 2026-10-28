@@ -8,14 +8,22 @@ import { VitePWA } from "vite-plugin-pwa";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// The app calls the PDF API at /api/pdf on its own origin. In production the
-// edge proxy routes that path to the pdf-service (docker/Caddyfile); in
-// development and `vite preview` this proxy does the same, so local exports
-// take the identical same-origin path and need no env file or CORS setup.
-const pdfApiProxy = {
+// The app calls its APIs on its own origin, as in production, where the edge
+// proxy routes /api/pdf to the pdf-service and the rest of /api to the API
+// (docker/Caddyfile). In development and `vite preview` this proxy does the
+// same, so local requests take the identical same-origin path: no env file,
+// no CORS, and the session cookie is first-party.
+// Order matters: the more specific /api/pdf must come before /api.
+const apiProxy = {
   "/api/pdf": {
     target: process.env.PDF_SERVICE_ORIGIN ?? "http://localhost:3040",
     rewrite: (p: string) => p.replace(/^\/api/, ""),
+  },
+  "/api": {
+    target: process.env.API_ORIGIN ?? "http://localhost:3050",
+    // Keep the browser's Host so auth redirects and cookies name the site
+    // (localhost:5173), not the API's own port.
+    changeOrigin: false,
   },
 };
 
@@ -35,7 +43,7 @@ export default defineConfig({
         name: "Paperplane — Resume Builder",
         short_name: "Paperplane",
         description:
-          "Build your resume, pick a design, and download a PDF that looks exactly like the preview. Your resume stays on your device.",
+          "Build your resume, pick a design, and download a PDF that looks exactly like the preview. No sign-up needed; a free account saves your resumes across devices.",
         id: "/",
         start_url: "/",
         scope: "/",
@@ -80,6 +88,6 @@ export default defineConfig({
   // issue log. (docs/ was the GitHub Pages publishing folder; the app is now
   // served from a container, see docs/DEPLOY.md.)
   build: { outDir: "dist", emptyOutDir: true },
-  server: { proxy: pdfApiProxy },
-  preview: { proxy: pdfApiProxy },
+  server: { proxy: apiProxy },
+  preview: { proxy: apiProxy },
 });

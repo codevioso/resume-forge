@@ -39,7 +39,8 @@ export function LandingFooter() {
             <BrandMark className="h-10" />
           </Link>
           <p className="mt-4 text-sm leading-relaxed text-slate-600">
-            A free resume builder with pixel-perfect PDFs. Your resume stays in your browser.
+            A free resume builder with pixel-perfect PDFs. No account needed; sign in to keep your resumes on every
+            device.
           </p>
         </div>
 

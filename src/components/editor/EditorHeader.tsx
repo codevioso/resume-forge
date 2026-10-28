@@ -7,23 +7,32 @@ import { APP_NAME } from '../../constants/brand';
 /**
  * The desktop editor's header: brand and save status on the left, the
  * document controls (passed in as `controls`) and Export PDF on the right.
+ *
+ * `leading` replaces the brand (a saved resume shows the way back to the
+ * resume list there); `account` is the account menu, at the far right.
  */
 export function EditorHeader({
   status,
   controls,
   isExporting,
   onExport,
+  leading,
+  account,
 }: {
   status: ReactNode;
   controls: ReactNode;
   isExporting: boolean;
   onExport: () => void;
+  leading?: ReactNode;
+  account?: ReactNode;
 }) {
   return (
     <header className="relative z-40 flex h-16 shrink-0 items-center gap-4 border-b border-slate-200 bg-white px-5 xl:px-6">
-      <Link to="/" className="-ml-1 shrink-0 rounded-lg p-1" aria-label={`${APP_NAME} home`}>
-        <BrandMark className="h-9" />
-      </Link>
+      {leading ?? (
+        <Link to="/" className="-ml-1 shrink-0 rounded-lg p-1" aria-label={`${APP_NAME} home`}>
+          <BrandMark className="h-9" />
+        </Link>
+      )}
       <span className="h-6 w-px shrink-0 bg-slate-200" aria-hidden="true" />
       <div className="min-w-0 flex-1">{status}</div>
       <div className="flex shrink-0 items-center gap-2.5">
@@ -47,6 +56,7 @@ export function EditorHeader({
             </>
           )}
         </button>
+        {account}
       </div>
     </header>
   );

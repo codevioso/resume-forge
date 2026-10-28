@@ -15,7 +15,7 @@ const STEPS: { title: string; body: string; icon: LucideIcon; art: ReactNode }[]
   {
     title: 'Fill in your details',
     icon: PenLine,
-    body: 'Type into simple forms and watch the live preview update. Everything is saved in your browser as you go.',
+    body: 'Type into simple forms and watch the live preview update. Everything is saved as you go: in your browser, or in your account if you sign in.',
     art: <FillArt />,
   },
   {
@@ -34,7 +34,7 @@ export function HowItWorks() {
           id="how-title"
           eyebrow="How it works"
           title="From blank page to PDF in three steps"
-          lede="No account to create and nothing to install. Open the editor and start writing."
+          lede="No account needed and nothing to install. Open the editor and start writing."
         />
 
         {/* Phones and tablets: a compact vertical timeline. */}
