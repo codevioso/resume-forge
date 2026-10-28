@@ -537,6 +537,53 @@ void main() {
       expect(theme.useMaterial3, isTrue);
     });
 
+    /// The accent is the logo's aqua exactly — the paper plane's colour — not a
+    /// cousin of it tuned for the chrome. The launcher icon and the splash mark
+    /// are drawn in it too (`test/brand/brand_assets_test.dart` holds that
+    /// side), so a drift here is a second brand colour.
+    test('the accent is the logo aqua', () {
+      expect(cs.primary, const Color(0xFF0EF0F8));
+    });
+
+    /// The container slots alias card tints rather than adding colours, and
+    /// each takes a different one so no two can be mistaken for each other.
+    /// The primary one sits on the accent's own hue: teal to the aqua, as
+    /// ochre was to the amber before it.
+    test('the containers are three different card tints', () {
+      final containers = {
+        'primaryContainer': cs.primaryContainer,
+        'secondaryContainer': cs.secondaryContainer,
+        'tertiaryContainer': cs.tertiaryContainer,
+      };
+      containers.forEach((name, color) {
+        expect(
+          tokens.cardTints,
+          contains(color),
+          reason: '$name is not one of the card tints',
+        );
+      });
+      expect(containers.values.toSet(), hasLength(3));
+
+      final accentHue = HSVColor.fromColor(cs.primary).hue;
+      final containerHue = HSVColor.fromColor(cs.primaryContainer).hue;
+      expect(
+        (containerHue - accentHue).abs(),
+        lessThan(10),
+        reason:
+            'primaryContainer sits at ${containerHue.toStringAsFixed(0)}° '
+            'against the accent\'s ${accentHue.toStringAsFixed(0)}°; it is '
+            'meant to be the accent\'s own deep tint',
+      );
+    });
+
+    /// The snackbar action: the accent as a light scheme would carry it.
+    test('inversePrimary is the accent, darkened', () {
+      final accent = HSVColor.fromColor(cs.primary);
+      final inverse = HSVColor.fromColor(cs.inversePrimary);
+      expect((inverse.hue - accent.hue).abs(), lessThan(2));
+      expect(inverse.value, lessThan(accent.value));
+    });
+
     /// The base is a *neutral* near-black, which is the whole point of the
     /// re-tone: the palette it replaced was a deep indigo and read as navy.
     test('the base carries no colour cast', () {

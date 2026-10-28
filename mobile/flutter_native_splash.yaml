@@ -14,14 +14,16 @@ flutter_native_splash:
   color: "#0E0E10"
   color_dark: "#0E0E10"
 
-  # The mark's *first frame*: the folded page with nothing written on it and no
-  # mat. The Flutter splash opens on exactly this drawing and then places the
-  # portrait, writes the two lines in, draws the arrow out and grows the mat
-  # behind it, so nothing visible changes hands — where a full logo here would
-  # mean the mark appeared, vanished for a beat, and animated back. 640px
-  # source, which this package treats as the 4x asset, so the page lands at
-  # 144dp: the size the Flutter splash's opening frame draws it at on a
-  # 390dp-wide phone.
+  # The mark's *first frame*: the paper plane alone, centred, with no trail and
+  # no wordmark. The Flutter splash opens on exactly this drawing — same size,
+  # same place — and then flies the plane out of it while its dotted trail
+  # draws in behind, so nothing visible changes hands; a full composition here
+  # would mean the trail appeared, vanished for a beat, and animated back.
+  # 640px source, which this package treats as the 4x asset, with the plane
+  # drawn at 4px per favicon unit: 1 unit = 1dp, so the plane is 140dp wide and
+  # its 100-unit drawing space is 100dp tall. That 100dp is `splashPlaneHeight`
+  # in lib/screens/splash_screen.dart, which opens the plane at that size on
+  # every device and centres it on the screen, not just on a 390dp phone.
   image: assets/brand/splash_logo.png
   image_dark: assets/brand/splash_logo.png
 
@@ -38,9 +40,10 @@ flutter_native_splash:
   fullscreen: false
 
   # Android 12+ uses the platform SplashScreen API, which ignores everything
-  # above. Same colour again, and a 1152px icon whose page lands at the same
-  # 144dp inside the 192dp circle the platform masks to. No
-  # icon_background_color: the mark is already high-contrast on the window
+  # above. Same colour again, and a 1152px (288dp) icon carrying the same plane
+  # at the same 1 unit = 1dp; its nose, the farthest point from its centre, is
+  # 82dp out, inside the 96dp radius of the circle the platform masks to. No
+  # icon_background_color: the plane is already high-contrast on the window
   # colour, and adding one would switch the platform to the smaller 960/640
   # icon geometry.
   android_12:

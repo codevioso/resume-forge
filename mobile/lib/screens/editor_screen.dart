@@ -1785,7 +1785,7 @@ class _PhotoTile extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // The accent, which is what the eye finds on this palette and the one
-        // colour in the app that means "look here". 9.06:1 on the well it is
+        // colour in the app that means "look here". 14.14:1 on the well it is
         // drawn in, the same pairing every section mark uses.
         Padding(
           // Optically centres an 18px glyph on the first line of 14px text,

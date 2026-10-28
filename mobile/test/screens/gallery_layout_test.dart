@@ -436,6 +436,46 @@ void main() {
         expect(find.text('Show it'), findsNothing);
       });
 
+      /// The note used to take `primaryContainer`. That is teal now, which is
+      /// also Tech's card colour, so under the Tech filter it read as one more
+      /// card in the grid below it. It takes the hidden design's own category
+      /// tint instead, which the filter guarantees is not on screen.
+      testWidgets('the note is never the colour of the cards under it', (
+        tester,
+      ) async {
+        const tokens = AppTokens();
+        final hiddenIn = defaultTemplate.category;
+
+        for (final filter in TemplateCategory.values) {
+          if (filter == hiddenIn) continue;
+          await pumpGallery(
+            tester,
+            const Size(390, 844),
+            selectedId: defaultTemplate.id,
+          );
+          await tester.tap(find.byKey(categoryChipKey(filter)));
+          await tester.pump();
+
+          final fill = tester
+              .widgetList<Container>(
+                find.ancestor(
+                  of: find.text('Show it'),
+                  matching: find.byType(Container),
+                ),
+              )
+              .map((c) => c.decoration)
+              .whereType<BoxDecoration>()
+              .firstWhere((d) => d.color != null)
+              .color;
+          expect(fill, categoryTint(hiddenIn, tokens));
+          expect(
+            fill,
+            isNot(categoryTint(filter, tokens)),
+            reason: 'under ${filter.name} the note matches the cards',
+          );
+        }
+      });
+
       for (final entry in const {
         'phone small at 2x': (Size(360, 800), 2.0),
         'phone landscape': (Size(800, 360), 1.0),
@@ -509,7 +549,7 @@ void main() {
     /// why it was a luminance step and not a hue in the first place. Moving it
     /// from the fill to the ring keeps that property and strengthens it: the
     /// old step measured 1.08:1 between two neutral tiers, the ring measures
-    /// 5.20:1 or better against every tint it can be drawn on.
+    /// 8.39:1 or better against every tint it can be drawn on.
     test('the ring is a luminance cue on every tint it can land on', () {
       const cs = AppTheme.colorScheme;
       const tokens = AppTokens();
@@ -748,9 +788,9 @@ void main() {
     /// against every paper in the catalog rather than against white only.
     ///
     /// Either edge of the pill may do the separating, and which one does has
-    /// swapped with the palette. The accent is now a light violet, so the fill
+    /// swapped with the palette. The accent is now a light aqua, so the fill
     /// is what holds up against Ember's charcoal and Terminal's near-black; on
-    /// white paper the fill drops to 1.61:1 and the dark `onPrimary` ring
+    /// white paper the fill drops to 1.42:1 and the dark `onPrimary` ring
     /// carries it instead. Delete either one and this test fails on half the
     /// catalog.
     test('the pill holds 3:1 against every paper in the catalog', () {

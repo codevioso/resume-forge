@@ -525,6 +525,15 @@ class _CategoryChip extends StatelessWidget {
 /// switching the filter for them, would take the catalog away from someone who
 /// came here to look at it. Only ever rendered when the selection really is off
 /// screen, so it costs nothing in the common case.
+///
+/// Painted in the tint of the category it points to, not in
+/// `primaryContainer`. The container is teal now — the accent's own deep tint
+/// — and teal is also Tech's card colour, so under the Tech filter the note sat
+/// above a grid of identical teal cards and read as one more of them. The
+/// hidden design's category tint can never collide that way: the note only
+/// exists when the filter shows a *different* category, and every category has
+/// its own tint. It also says "in Creative" in Creative's colour. Every tint
+/// carries `onSurface` and the accent at AA, measured in `contrast_test`.
 class _HiddenSelectionNote extends StatelessWidget {
   const _HiddenSelectionNote({required this.template, required this.onShow});
 
@@ -535,7 +544,7 @@ class _HiddenSelectionNote extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final tokens = context.tokens;
-    final ink = theme.colorScheme.onPrimaryContainer;
+    final ink = theme.colorScheme.onSurface;
     final message =
         '${template.name} is your current design, '
         'in ${categoryLabel(template.category)}.';
@@ -557,7 +566,7 @@ class _HiddenSelectionNote extends StatelessWidget {
             tokens.spaceSm,
           ),
           decoration: BoxDecoration(
-            color: theme.colorScheme.primaryContainer,
+            color: categoryTint(template.category, tokens),
             borderRadius: BorderRadius.circular(tokens.radiusMd),
           ),
           // Wrap, not Row: at a large text size the sentence and the action do
@@ -585,11 +594,11 @@ class _HiddenSelectionNote extends StatelessWidget {
               ),
               TextButton(
                 onPressed: onShow,
+                // The theme's accent label, like every other text button. It
+                // used to be forced to the container's ink because a violet
+                // label on a violet container could not be carried; the aqua
+                // clears 8.39:1 or better on every tint this note can take.
                 style: TextButton.styleFrom(
-                  // The container's own ink, not the accent: a light violet
-                  // label on a violet container is the one pairing this
-                  // palette cannot carry, and this pair is measured.
-                  foregroundColor: ink,
                   padding: EdgeInsets.symmetric(horizontal: tokens.spaceMd),
                 ),
                 child: const Text('Show it'),
@@ -644,7 +653,7 @@ class _TemplateCard extends StatelessWidget {
         // on the category. That is a straight swap of one luminance cue for a
         // stronger one, not a downgrade: the old cue was a card one tier
         // brighter, which measured 1.08:1 against its neighbours, while the
-        // accent ring measures 5.20–6.31:1 against every tint it can be drawn
+        // accent ring measures 8.39–9.84:1 against every tint it can be drawn
         // on. Luminance, not hue, so it survives any colour-vision deficiency
         // exactly as the tier step was chosen to — and it is doubled in width
         // as well, so the cue is not carried by colour alone.
@@ -805,10 +814,10 @@ class _PageFrame extends StatelessWidget {
 /// catalog rather than assuming.
 ///
 /// The ring is what makes that check pass, and on the dark palette the two
-/// edges have swapped jobs. The accent is now a *light* violet and `onPrimary`
-/// a near-black, so the fill is what separates the pill from Ember's charcoal
-/// and Terminal's near-black pages (8.24:1 and 9.09:1), while on white paper
-/// the fill drops to 1.61:1 and the dark ring carries it instead (17.76:1).
+/// edges have swapped jobs. The accent is a *light* aqua and `onPrimary` a
+/// near-black, so the fill is what separates the pill from Ember's charcoal
+/// and Terminal's near-black pages (12.36:1 and 13.64:1), while on white paper
+/// the fill drops to 1.42:1 and the dark ring carries it instead (18.69:1).
 /// One of the two always holds; `gallery_layout_test` still measures
 /// `max(fill, ring) >= 3:1` against every paper in the catalog.
 class _SelectedBadge extends StatelessWidget {

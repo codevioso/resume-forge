@@ -1,8 +1,10 @@
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image/image.dart' as img;
+import 'package:resume_forge/screens/splash_screen.dart';
 import 'package:resume_forge/theme/app_theme.dart';
 
 /// The brand rasters cannot read `ColorScheme` at build time, so the palette is
@@ -15,30 +17,51 @@ import 'package:resume_forge/theme/app_theme.dart';
 /// than against `AppTheme`, so a palette change produces two precise failures
 /// ("the icon is still the old colour") instead of twenty vague ones.
 
-/// The two colours baked into the rasters. Copied by hand from the table at the
-/// top of `assets/brand/generate_brand.py`; that file is the thing that
-/// actually painted the pixels, this is the assertion that it painted the right
-/// ones.
+/// The colours baked into the rasters. Copied by hand from the table at the top
+/// of `assets/brand/generate_brand.py`; that file is the thing that actually
+/// painted the pixels, this is the assertion that it painted the right ones.
 const _base = Color(0xFF0E0E10); // BASE — matte near-black
-const _mark = Color(0xFFD8A657); // MARK — matte amber
+const _mark = Color(0xFF0EF0F8); // MARK — the logo's aqua
+const _fold = Color(0xFF1D8FB8); // FOLD — the logo's steel blue
 
-/// A4, mirrored from the generator and from `lib/screens/splash_screen.dart`.
-const _a4 = 1 / 1.4142135623730951;
+/// Mirrored from the generator and from `lib/screens/splash_screen.dart`: the
+/// centre of the plane's bounding box and its nose, in the favicon's units
+/// (public/favicon.svg, viewBox 0 0 160 100).
+const _centre = (x: 80.0, y: 47.5);
+const _nose = (x: 150.0, y: 5.0);
 
-/// Every generated image that carries the mark, with the page fraction
+/// Distance from the centre to the nose — the farthest ink, so every size in
+/// the generator is set as a fraction of it.
+final _reach = math.sqrt(
+  math.pow(_nose.x - _centre.x, 2) + math.pow(_nose.y - _centre.y, 2),
+);
+
+/// Px per favicon unit for a canvas of [size] with the nose [nose] of the
+/// canvas out from the centre — `_unit_for` in the generator.
+double _unitFor(int size, double nose) => size * nose / _reach;
+
+/// The native splash sources draw 1 unit as 4px, the 4x asset of 1dp.
+const _splashUnit = 4.0;
+
+/// Every generated image that carries the coloured plane, with the scale
 /// `assets/brand/generate_brand.py` drew it at.
-const _sources = <({String path, int canvas, double page})>[
-  (path: 'assets/brand/icon_foreground.png', canvas: 1024, page: 0.52),
-  (path: 'assets/brand/icon_master.png', canvas: 1024, page: 0.60),
-  (path: 'assets/brand/splash_logo.png', canvas: 640, page: 0.90),
-  (path: 'assets/brand/splash_android12.png', canvas: 1152, page: 0.50),
+final _sources = <({String path, int canvas, double unit})>[
+  (
+    path: 'assets/brand/icon_foreground.png',
+    canvas: 1024,
+    unit: _unitFor(1024, 0.31),
+  ),
+  (
+    path: 'assets/brand/icon_master.png',
+    canvas: 1024,
+    unit: _unitFor(1024, 0.40),
+  ),
+  (path: 'assets/brand/splash_logo.png', canvas: 640, unit: _splashUnit),
+  (path: 'assets/brand/splash_android12.png', canvas: 1152, unit: _splashUnit),
 ];
 
-/// The two native splash sources, which are the mark's *first frame*.
-const _splashSources = <({String path, int canvas, double page})>[
-  (path: 'assets/brand/splash_logo.png', canvas: 640, page: 0.90),
-  (path: 'assets/brand/splash_android12.png', canvas: 1152, page: 0.50),
-];
+/// The two native splash sources, which are the Flutter splash's *first frame*.
+final _splashSources = _sources.where((s) => s.unit == _splashUnit).toList();
 
 String _hex(Color color) {
   String part(double channel) =>
@@ -58,58 +81,42 @@ img.Image _load(String path) {
   return decoded!;
 }
 
-/// Pixel coordinates at ([fx], [fy]) of the mark's page box, for a page
-/// [pageFraction] of a square [canvas] — the geometry every generated image
-/// shares.
-({int x, int y}) _onPage(
-  int canvas,
-  double pageFraction,
-  double fx,
-  double fy,
-) {
-  final h = canvas * pageFraction;
-  final w = h * _a4;
-  return (
-    x: ((canvas - w) / 2 + w * fx).round(),
-    y: ((canvas - h) / 2 + h * fy).round(),
-  );
-}
+/// Pixel coordinates of favicon point ([ux], [uy]) on a square [canvas] that
+/// carries the plane centred at [unit] px per unit — the geometry every
+/// generated image shares.
+({int x, int y}) _at(int canvas, double unit, ({double x, double y}) point) => (
+  x: (canvas / 2 + (point.x - _centre.x) * unit).round(),
+  y: (canvas / 2 + (point.y - _centre.y) * unit).round(),
+);
 
-/// Points on the page that miss the fold and every piece of its content.
-///
-/// Six, spread into every band of the page the mark leaves clear: above the
-/// portrait, right of it under the fold, between the shoulders and the lower
-/// line, right of that line, between it and the arrow, and below the arrow's
-/// tail. Every one was checked against the generated PNGs with a margin of 1.5%
-/// of the page height in all directions, so an antialiased edge cannot be what
-/// makes them pass — and they are spread widely enough that a gradient across
-/// the page could not hold one value across all six.
-const _pageGaps = <({double fx, double fy})>[
-  (fx: 0.50, fy: 0.075),
-  (fx: 0.75, fy: 0.300),
-  (fx: 0.30, fy: 0.480),
-  (fx: 0.94, fy: 0.480),
-  (fx: 0.30, fy: 0.680),
-  (fx: 0.30, fy: 0.965),
+/// Points inside the two aqua panels: two on the upper wing (its thick root
+/// and its thin outer half) and two on the right panel. Each was measured at
+/// least 4 units clear of every panel edge, so an antialiased edge cannot be
+/// what makes them pass, and they span the plane widely enough that a gradient
+/// across it could not hold one value at all four.
+const _aquaPoints = <({double x, double y})>[
+  (x: 65, y: 35),
+  (x: 100, y: 22.5),
+  (x: 105, y: 57),
+  (x: 90, y: 75),
 ];
 
-/// Dead centre of the portrait's head — the deepest point of the mark's
-/// content, 39px clear of an edge on a 1024px layer.
-const _portrait = (fx: 0.315, fy: 0.235);
+/// Points inside the fold, 7 units clear of its edges.
+const _foldPoints = <({double x, double y})>[(x: 55, y: 70), (x: 85, y: 47)];
 
-/// Inside the arrow: one point on the shaft, one in the head.
-const _arrowShaft = (fx: 0.50, fy: 0.808);
-const _arrowHead = (fx: 0.86, fy: 0.72);
+/// Inside each crease, 90% of the way from the nose to the edge of the plane:
+/// the widest point of each crease that is still unmistakably *in* it rather
+/// than in the notch it opens into. 3.3 and 2.6 units from the nearest panel.
+const _creasePoints = <({double x, double y})>[
+  (x: 51.1, y: 52.1), // between the upper wing and the fold
+  (x: 73.8, y: 68.0), // between the fold and the right panel: the spine
+];
 
-/// Inside the folded corner.
-///
-/// The crease runs 45 degrees from (0.66, 0) to (1.0, 0.24), so this sits well
-/// beyond it. Unlike the content, the fold is part of the mark's *silhouette*,
-/// so it is cut away on the native splash frames too.
-const _foldCorner = (fx: 0.92, fy: 0.06);
+/// Outside the plane: the notch under it, and the pocket under the wing.
+const _outsidePoints = <({double x, double y})>[(x: 70, y: 86), (x: 25, y: 60)];
 
-/// Exact-match assertion. Not approximate on purpose: the mark is one flat
-/// colour over a flat backdrop, so every interior pixel is that colour to the
+/// Exact-match assertion. Not approximate on purpose: the plane is three flat
+/// colours over a flat backdrop, so every interior pixel is its colour to the
 /// bit. Only the antialiased edges are blends, and nothing here samples one.
 void _expectPixel(
   img.Image image,
@@ -129,10 +136,10 @@ void _expectPixel(
 
 void main() {
   group('the baked palette still matches Dart', () {
-    // The two assertions the whole file exists for. If either fails, the app
-    // has been re-toned and `assets/brand/generate_brand.py` has not been:
-    // update its table, rerun it, then rerun `dart run flutter_launcher_icons`
-    // and `dart run flutter_native_splash:create`.
+    // The assertions the whole file exists for. If one fails, the app has been
+    // re-toned and `assets/brand/generate_brand.py` has not been: update its
+    // table, rerun it, then rerun `dart run flutter_launcher_icons` and
+    // `dart run flutter_native_splash:create`.
     test('the base is AppTheme.colorScheme.surface', () {
       expect(
         _hex(AppTheme.colorScheme.surface),
@@ -144,15 +151,29 @@ void main() {
       );
     });
 
-    test('the mark fill is AppTheme.colorScheme.primary', () {
+    test('the plane is AppTheme.colorScheme.primary', () {
       expect(
         _hex(AppTheme.colorScheme.primary),
         _hex(_mark),
         reason:
             'the launcher icon and both native splash images are baked at '
-            '${_hex(_mark)}; the Flutter splash paints the mark in '
+            '${_hex(_mark)}; the Flutter splash paints the plane in '
             'colorScheme.primary, so the icon the user taps and the mark that '
             'animates in must be the same colour',
+      );
+    });
+
+    test('the native splash draws the plane at splashPlaneHeight', () {
+      // generate_brand.py draws both native images at SPLASH_UNIT px per unit
+      // as 4x assets; the Flutter splash opens its plane's 100-unit height at
+      // splashPlaneHeight. If these disagree the plane jumps in size at the
+      // handoff.
+      expect(
+        _splashUnit / 4 * 100,
+        splashPlaneHeight,
+        reason:
+            'the native splash plane would not be the size the Flutter '
+            'splash opens at',
       );
     });
   });
@@ -220,9 +241,9 @@ void main() {
       expect(background.height, 1024);
 
       // Corners, edge midpoints and the centre. Sampled this widely because
-      // "flat" is the requirement: the backdrop used to lift toward a panel
-      // tint in the middle and bloom the accent under the page, and a single
-      // corner sample would not notice either coming back.
+      // "flat" is the requirement: a backdrop that lifted toward a panel tint
+      // in the middle or bloomed the accent under the mark would be a gradient,
+      // and a single corner sample would not notice either coming back.
       for (final at in const [
         (x: 0, y: 0),
         (x: 1023, y: 0),
@@ -250,130 +271,97 @@ void main() {
       expect(master.width, 1024);
     });
 
-    test('the mark is one solid colour, on every layer that is coloured', () {
+    test(
+      'the panels are flat aqua and steel blue, on every coloured layer',
+      () {
+        for (final source in _sources) {
+          final image = _load(source.path);
+          for (final point in _aquaPoints) {
+            _expectPixel(
+              image,
+              _at(source.canvas, source.unit, point),
+              _mark,
+              reason:
+                  '${source.path}: the upper wing and the right panel are one '
+                  'flat aqua; (${point.x},${point.y}) is not it',
+            );
+          }
+          for (final point in _foldPoints) {
+            _expectPixel(
+              image,
+              _at(source.canvas, source.unit, point),
+              _fold,
+              reason:
+                  '${source.path}: the fold is one flat steel blue; '
+                  '(${point.x},${point.y}) is not it',
+            );
+          }
+        }
+      },
+    );
+
+    test('the creases and the notch are cut through on every layer', () {
+      // The creases are what make three flat shapes read as one folded sheet
+      // on a dark ground, where the favicon's navy outline does not show. They
+      // are holes, not paint: on the transparent layers the layer behind shows
+      // through them, and on the flattened master that is the backdrop.
       for (final source in _sources) {
         final image = _load(source.path);
-        for (final gap in _pageGaps) {
-          _expectPixel(
-            image,
-            _onPage(source.canvas, source.page, gap.fx, gap.fy),
-            _mark,
-            reason:
-                '${source.path}: every point of the page is the same matte '
-                'amber. Six points spread across it cannot all match if the '
-                'fill has gone back to a ramp',
-          );
+        for (final point in [..._creasePoints, ..._outsidePoints]) {
+          final at = _at(source.canvas, source.unit, point);
+          if (source.path.endsWith('icon_master.png')) {
+            _expectPixel(
+              image,
+              at,
+              _base,
+              reason:
+                  'the flattened master must show the backdrop at '
+                  '(${point.x},${point.y})',
+            );
+          } else {
+            expect(
+              image.getPixel(at.x, at.y).a,
+              lessThan(16),
+              reason:
+                  '${source.path} is painted at (${point.x},${point.y}), which '
+                  'is a crease or outside the plane — the creases must be '
+                  'cut through, not drawn in a dark colour',
+            );
+          }
         }
       }
     });
 
-    test('the corner is folded away on every layer', () {
-      // The fold is silhouette rather than content, so unlike the portrait and
-      // the lines it is cut out of the native splash frames as well — the
-      // Flutter splash opens on an already-folded page.
-      for (final source in _sources) {
-        final at = _onPage(
-          source.canvas,
-          source.page,
-          _foldCorner.fx,
-          _foldCorner.fy,
+    test('the monochrome layer is a flat silhouette with its creases cut', () {
+      final mono = _load('assets/brand/icon_monochrome.png');
+      final unit = _unitFor(1024, 0.31);
+
+      // Flat white whatever the accent does: Android 13 reads only this
+      // layer's alpha and recolours it to the user's wallpaper palette, so it
+      // deliberately does *not* follow the palette — and the fold's second
+      // colour cannot survive that, which is why the creases carry the folds.
+      for (final point in [..._aquaPoints, ..._foldPoints]) {
+        final at = _at(1024, unit, point);
+        final ink = mono.getPixel(at.x, at.y);
+        expect(ink.a, greaterThan(200), reason: 'every panel is opaque');
+        expect(ink.r, ink.g, reason: 'and flat white, for the system to tint');
+        expect(ink.g, ink.b);
+        expect(ink.r, greaterThan(250));
+      }
+
+      for (final point in [..._creasePoints, ..._outsidePoints]) {
+        final at = _at(1024, unit, point);
+        expect(
+          mono.getPixel(at.x, at.y).a,
+          lessThan(16),
+          reason:
+              'the creases are holes, so the theme shows through them '
+              '(${point.x},${point.y})',
         );
-        final pixel = _load(source.path).getPixel(at.x, at.y);
-        if (source.path.endsWith('icon_master.png')) {
-          _expectPixel(
-            _load(source.path),
-            at,
-            _base,
-            reason:
-                'the flattened master must show the backdrop through the fold',
-          );
-        } else {
-          expect(
-            pixel.a,
-            lessThan(16),
-            reason:
-                '${source.path} still has a square top-right corner — the '
-                'reference logo\'s folded corner is the mark\'s most '
-                'recognisable feature and the only one that survives at 36px',
-          );
-        }
       }
     });
 
-    test(
-      'the portrait and the arrow are punched through to the layer behind',
-      () {
-        // On the adaptive foreground the contents are holes, so the adaptive
-        // background — and, under a themed icon, the system's own plate — shows
-        // through.
-        final foreground = _load('assets/brand/icon_foreground.png');
-        final master = _load('assets/brand/icon_master.png');
-
-        for (final spot in const [_portrait, _arrowShaft, _arrowHead]) {
-          final at = _onPage(1024, 0.52, spot.fx, spot.fy);
-          expect(
-            foreground.getPixel(at.x, at.y).a,
-            lessThan(16),
-            reason:
-                'the foreground contents must be transparent, not painted '
-                '(${spot.fx},${spot.fy})',
-          );
-
-          // On the flattened master they resolve to the backdrop, which is what
-          // makes the legacy icon legible: page and content are the same 8.7:1
-          // apart as page and backdrop.
-          _expectPixel(
-            master,
-            _onPage(1024, 0.60, spot.fx, spot.fy),
-            _base,
-            reason:
-                'the master\'s contents must read as the backdrop showing '
-                'through (${spot.fx},${spot.fy})',
-          );
-        }
-      },
-    );
-
-    test(
-      'the monochrome layer is a flat silhouette with its bars punched out',
-      () {
-        final mono = _load('assets/brand/icon_monochrome.png');
-
-        // Flat white whatever the accent does: Android 13 reads only this
-        // layer's alpha and recolours it to the user's wallpaper palette, so it
-        // deliberately does *not* follow the palette.
-        for (final gap in _pageGaps) {
-          final at = _onPage(1024, 0.52, gap.fx, gap.fy);
-          final ink = mono.getPixel(at.x, at.y);
-          expect(ink.a, greaterThan(200), reason: 'the page is opaque');
-          expect(
-            ink.r,
-            ink.g,
-            reason: 'and flat white, for the system to tint',
-          );
-          expect(ink.g, ink.b);
-          expect(ink.r, greaterThan(250));
-        }
-
-        for (final spot in const [
-          _portrait,
-          _arrowShaft,
-          _arrowHead,
-          _foldCorner,
-        ]) {
-          final at = _onPage(1024, 0.52, spot.fx, spot.fy);
-          expect(
-            mono.getPixel(at.x, at.y).a,
-            lessThan(16),
-            reason:
-                'the contents and the fold are holes, so the theme shows '
-                'through them (${spot.fx},${spot.fy})',
-          );
-        }
-      },
-    );
-
-    test('the adaptive foreground keeps the mark inside the safe circle', () {
+    test('the adaptive foreground keeps the plane inside the safe circle', () {
       final foreground = _load('assets/brand/icon_foreground.png');
       const size = 1024;
       // Android guarantees only the inner 66% circle survives masking.
@@ -397,46 +385,50 @@ void main() {
         outside,
         0,
         reason:
-            '$outside sampled pixels of the mark sit outside the 66% safe '
+            '$outside sampled pixels of the plane sit outside the 66% safe '
             'circle and would be clipped by a launcher mask',
       );
     });
   });
 
   group('native splash source images', () {
-    test('they are the empty folded page — the splash\'s frame 0', () {
-      // The animated splash opens on the empty page and places the portrait,
-      // writes the lines in and draws the arrow out. A finished mark here would
-      // mean the mark appears, loses its contents for a beat, then animates
-      // them back in at the native-to-Flutter handoff.
+    test('they are the plane alone, centred — the splash\'s frame 0', () {
+      // The animated splash opens on the plane alone and draws the trail in
+      // behind it as it flies. A trail here would mean it appeared, vanished
+      // for a beat, then animated back in at the native-to-Flutter handoff; an
+      // off-centre plane would jump. So the ink must be exactly the plane's
+      // own box — 10..150 x 5..90 units — centred, and nothing else.
       for (final source in _splashSources) {
         final image = _load(source.path);
         expect(image.width, source.canvas);
 
-        for (final spot in const [_portrait, _arrowShaft, _arrowHead]) {
-          _expectPixel(
-            image,
-            _onPage(source.canvas, source.page, spot.fx, spot.fy),
-            _mark,
+        var left = source.canvas, top = source.canvas, right = -1, bottom = -1;
+        for (var y = 0; y < image.height; y++) {
+          for (var x = 0; x < image.width; x++) {
+            if (image.getPixel(x, y).a < 16) continue;
+            left = math.min(left, x);
+            right = math.max(right, x);
+            top = math.min(top, y);
+            bottom = math.max(bottom, y);
+          }
+        }
+        final topLeft = _at(source.canvas, source.unit, (x: 10, y: 5));
+        final bottomRight = _at(source.canvas, source.unit, (x: 150, y: 90));
+        for (final (got, want) in [
+          (left, topLeft.x),
+          (top, topLeft.y),
+          (right, bottomRight.x),
+          (bottom, bottomRight.y),
+        ]) {
+          expect(
+            (got - want).abs(),
+            lessThanOrEqualTo(4),
             reason:
-                '${source.path} already has its contents punched out at '
-                '(${spot.fx},${spot.fy}) — the mark would appear complete, '
-                'then lose them at the handoff',
+                '${source.path}: ink spans ($left,$top)-($right,$bottom), '
+                'not the plane\'s own box (${topLeft.x},${topLeft.y})-'
+                '(${bottomRight.x},${bottomRight.y})',
           );
         }
-      }
-    });
-
-    test('the page lands at the same height the splash opens at', () {
-      // lib/screens/splash_screen.dart draws a 164dp page on a 390dp phone and
-      // opens it at 0.88 scale = 144dp. Both sources are treated as 4x assets
-      // by their platforms, so both must carry a 144dp page.
-      for (final source in _splashSources) {
-        expect(
-          source.canvas * source.page / 4,
-          closeTo(144, 1),
-          reason: '${source.path} would jump in size at the handoff',
-        );
       }
     });
   });
@@ -473,6 +465,7 @@ void main() {
       final launcher = _load(
         'android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png',
       );
+      final unit = _unitFor(launcher.width, 0.40);
       _expectPixel(
         launcher,
         (x: 2, y: 2),
@@ -481,24 +474,23 @@ void main() {
       );
       _expectPixel(
         launcher,
-        _onPage(launcher.width, 0.60, 0.30, 0.680),
+        _at(launcher.width, unit, _aquaPoints.first),
         _mark,
-        reason: 'the shipped mipmap still has the old mark fill',
+        reason: 'the shipped mipmap still has the old mark colour',
       );
-      // Two shapes that only exist in the current mark, so a stale mipmap left
-      // over from the previous drawing fails here rather than passing on the
-      // colour alone.
+      // Two things only the plane has, so a stale mipmap left over from a
+      // previous drawing fails here rather than passing on the colour alone.
       _expectPixel(
         launcher,
-        _onPage(launcher.width, 0.60, _foldCorner.fx, _foldCorner.fy),
-        _base,
+        _at(launcher.width, unit, _foldPoints.first),
+        _fold,
         reason: 'the shipped mipmap has not been regenerated with the fold',
       );
       _expectPixel(
         launcher,
-        _onPage(launcher.width, 0.60, _portrait.fx, _portrait.fy),
+        _at(launcher.width, unit, _creasePoints.first),
         _base,
-        reason: 'the shipped mipmap has not been regenerated with the portrait',
+        reason: 'the shipped mipmap has not been regenerated with the creases',
       );
     });
 
@@ -519,7 +511,7 @@ void main() {
         isNot(contains('android:inset="16%"')),
         reason:
             'the art already respects the safe zone; a second inset shrinks '
-            'the mark to a third of the layer',
+            'the plane to a third of the layer',
       );
     });
 

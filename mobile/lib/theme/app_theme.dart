@@ -7,7 +7,7 @@ import 'tokens.dart';
 ///
 /// **This palette is app chrome only.** Resume templates carry their own
 /// independent document palettes and must never read from this [ColorScheme] —
-/// a resume printed in the app's amber would be a defect, not a feature. The
+/// a resume printed in the app's aqua would be a defect, not a feature. The
 /// two colour worlds stay strictly separate: this file styles the frame,
 /// `templates/` styles the page inside it. Eleven of the thirteen designs are
 /// light documents, so with a near-black frame the boundary is visible at a
@@ -81,22 +81,35 @@ abstract final class AppTheme {
   static const _outline = Color(0xFF8E8B85);
   static const _hairline = Color(0xFF2A2A2F);
 
-  /// Matte amber, and the app's only accent.
+  /// The logo's aqua — the paper plane's own colour — and the app's only
+  /// accent.
   ///
   /// One saturated colour on a neutral black, spent on the things that act:
   /// the filled button, the FAB, section marks, focus, links, selection. It is
-  /// also the fill of the launcher icon's page and of the splash mark, so the
+  /// also the colour of the launcher icon's mark and of the splash mark, so the
   /// thing the user taps on the home screen is the colour that greets them —
-  /// `test/brand/brand_assets_test.dart` pins that handshake.
+  /// `test/brand/brand_assets_test.dart` pins that handshake. Taken from the
+  /// logo exactly rather than toned down for the chrome: an "app aqua" a few
+  /// steps off the logo's would be a second brand colour nobody chose.
   ///
-  /// Light enough to be read *as text* on every surface in the app (8.73:1 on
-  /// the base, 5.20:1 on the worst tint) and dark enough to carry near-black
-  /// ink on top of it (8.46:1), which is what lets one colour be both the
+  /// Much lighter than the amber it replaced (luminance 0.69 against 0.43), and
+  /// that moves both of its jobs the safe way. Read *as text* it clears 13.63:1
+  /// on the base and 8.12:1 on the worst tint (ochre); as a fill it carries the
+  /// near-black ink at 13.20:1 — which is what lets one colour be both the
   /// button fill and the button label elsewhere.
-  static const _amber = Color(0xFFD8A657);
+  ///
+  /// What the lightness costs, stated so nobody leans on it: the aqua is only
+  /// 1.24:1 from [_onSurface] and 1.73:1 from [_onSurfaceMuted] in brightness,
+  /// so beside body copy it separates by **hue, not luminance**. Nothing in the
+  /// app uses it as the only cue for a state — a focused rule also doubles in
+  /// width, the selected design card's ring doubles, the selected tab carries
+  /// an indicator — and the one place it marks a word inside other copy, the
+  /// "plane" of the wordmark, is branding rather than information.
+  static const _aqua = Color(0xFF0EF0F8);
 
   /// Ink for anything drawn on top of a saturated accent. A near-black rather
   /// than white: on this palette the accents are light, so their labels invert.
+  /// White on the aqua would measure 1.42:1; this measures 13.20:1.
   static const _onAccent = Color(0xFF141210);
 
   /// The two neutral "accents" [ColorScheme] insists on.
@@ -136,12 +149,17 @@ abstract final class AppTheme {
 
   static const colorScheme = ColorScheme(
     brightness: Brightness.dark,
-    primary: _amber,
+    primary: _aqua,
     onPrimary: _onAccent,
     // The container slots alias three of the card tints rather than inventing
     // three more colours. Same palette, fewer values to keep measured, and a
     // Material default can only ever land on a colour the app already uses.
-    primaryContainer: Color(0xFF473719), // ochre
+    // The primary one is teal because teal is the tint on the accent's own hue
+    // (180° against the aqua's 182°) — the deep, muted end of the same colour,
+    // the relationship ochre had with the amber before it. Three different
+    // tints for three slots, so no two containers can be mistaken for each
+    // other; `contrast_test` holds all of that.
+    primaryContainer: Color(0xFF123A3A), // teal
     onPrimaryContainer: _onSurface,
     secondary: _stoneWarm,
     onSecondary: _onAccent,
@@ -173,7 +191,10 @@ abstract final class AppTheme {
     // disappearance, which is why that chrome takes [_well] instead.
     inverseSurface: _onSurface,
     onInverseSurface: _panelMid,
-    inversePrimary: Color(0xFF6B4E15),
+    // The aqua at 38% brightness, same hue and saturation: the accent as it
+    // would sit on a light scheme, which is what `inversePrimary` means. It is
+    // the snackbar's action colour, at 6.63:1 on the inverted surface.
+    inversePrimary: Color(0xFF065E61),
     shadow: Color(0xFF000000),
     // Neutral black, like the base. A tinted scrim over a matte black app
     // would put a hue back into the one place the palette has none.
@@ -264,8 +285,8 @@ abstract final class AppTheme {
         scrolledUnderElevation: 0,
         // M3 tints a raised surface with the primary colour, in proportion to
         // its elevation. Kept off: every card here already carries an authored
-        // solid tint, and an automatic amber wash over them would drag teal and
-        // plum back toward amber — flattening the exact variety the tints exist
+        // solid tint, and an automatic aqua wash over them would drag clay and
+        // plum toward teal — flattening the exact variety the tints exist
         // to create. Every surface's colour is stated, never derived.
         surfaceTintColor: Colors.transparent,
         centerTitle: false,
@@ -300,7 +321,7 @@ abstract final class AppTheme {
           minimumSize: Size(0, tokens.minTouchTarget),
           padding: EdgeInsets.symmetric(horizontal: tokens.spaceXl),
           elevation: 0,
-          // Pill, not a rounded rectangle: the solid amber action is the one
+          // Pill, not a rounded rectangle: the solid aqua action is the one
           // shape in the app that is allowed to look like a physical button.
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(tokens.radiusPill),
@@ -360,7 +381,7 @@ abstract final class AppTheme {
       floatingActionButtonTheme: FloatingActionButtonThemeData(
         backgroundColor: colorScheme.primary,
         foregroundColor: colorScheme.onPrimary,
-        // Flat, like everything else. A solid amber pill over a matte black
+        // Flat, like everything else. A solid aqua pill over a matte black
         // list is already the highest-contrast object on the screen; a shadow
         // under it would be invisible and is not what is holding it up.
         elevation: 0,
@@ -391,7 +412,7 @@ abstract final class AppTheme {
       // The rule is still not decoration: that 1.4–1.7:1 is far under the 3:1
       // WCAG 1.4.11 wants from the edge of a control, so the `outline`
       // underline is what makes a field locatable (5.89:1 against the fill).
-      // Focus doubles it and switches it to the amber; error switches it to the
+      // Focus doubles it and switches it to the aqua; error switches it to the
       // error colour. Both are unmistakable against a resting warm grey.
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
@@ -412,7 +433,7 @@ abstract final class AppTheme {
           (states) => _fieldInk(states, colorScheme.onSurfaceVariant),
         ),
         // A label floats as soon as its field holds text, so a flat accent
-        // colour here painted every label in a filled-in form amber and left
+        // colour here painted every label in a filled-in form aqua and left
         // nothing to mark the field the user is actually in. The accent is
         // spent on focus only.
         floatingLabelStyle: WidgetStateTextStyle.resolveWith((states) {
@@ -543,7 +564,7 @@ abstract final class AppTheme {
       snackBarTheme: SnackBarThemeData(
         // The one inverted surface in the app, and the only place `inverse*`
         // is used: a dark snackbar on a dark app is a message nobody sees, so
-        // it flips to light with dark ink and a deep amber accent.
+        // it flips to light with dark ink and a deep aqua accent.
         backgroundColor: colorScheme.inverseSurface,
         contentTextStyle: TextStyle(
           fontFamily: uiFontFamily,

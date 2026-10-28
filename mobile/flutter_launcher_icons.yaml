@@ -7,30 +7,32 @@
 # The palette baked into those PNGs is documented at the top of
 # assets/brand/generate_brand.py and guarded by test/brand/brand_assets_test.dart.
 flutter_launcher_icons:
-  # Opaque master: backdrop plus the mark at 60% of the canvas. Used for the
-  # legacy square/round Android mipmaps and for every iOS size.
+  # Opaque master: the matte backdrop plus the paper plane, 68% of the canvas
+  # wide. Used for the legacy square Android mipmaps and for every iOS size.
   image_path: "assets/brand/icon_master.png"
 
   android: "ic_launcher"
   ios: true
 
-  # Android adaptive icon. The foreground keeps the mark inside the guaranteed
-  # 66%-of-canvas safe circle — its farthest ink measures 0.3019 of the layer
-  # against a 0.3300 safe radius — so no launcher mask can clip the page
-  # corners; the backdrop is the flat matte base, so there is nothing in it a
-  # mask could crop badly. The whole mark, down to the arrowhead, was checked
-  # legible at 48px under circle, squircle, rounded-square and full-square
-  # masks.
+  # Android adaptive icon. The foreground keeps the plane inside the guaranteed
+  # 66%-of-canvas safe circle — its farthest ink, the nose, sits 0.31 of the
+  # layer from the centre against a 0.33 safe radius — so no launcher mask can
+  # clip the point; the backdrop is the flat matte base, so there is nothing in
+  # it a mask could crop badly. The whole plane, down to both creases, was
+  # checked legible at 48px under circle, squircle, rounded-square and
+  # full-square masks.
   adaptive_icon_background: "assets/brand/icon_background.png"
   adaptive_icon_foreground: "assets/brand/icon_foreground.png"
   # This package otherwise wraps the foreground and monochrome drawables in a
   # 16% <inset>, on the assumption that the supplied art is full-bleed and needs
   # pushing into the safe zone. Ours already is in the safe zone, so a second
-  # inset would shrink the page to a third of the layer and leave the icon
+  # inset would shrink the plane to a third of the layer and leave the icon
   # looking lost inside its own mask.
   adaptive_icon_foreground_inset: 0
-  # Android 13 themed icons: a flat silhouette of the same mark, holes and all,
-  # which the system recolours to the user's wallpaper palette.
+  # Android 13 themed icons: a flat silhouette of the same plane with its two
+  # creases cut through, which the system recolours to the user's wallpaper
+  # palette. The creases are what keep it a folded plane rather than a
+  # triangle, since the fold's second colour cannot survive the recolouring.
   adaptive_icon_monochrome: "assets/brand/icon_monochrome.png"
 
   # Stated rather than parsed: android/app/build.gradle.kts sets

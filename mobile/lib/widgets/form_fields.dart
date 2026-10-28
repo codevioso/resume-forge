@@ -190,11 +190,11 @@ Size measureText(BuildContext context, String text, TextStyle? style) {
 /// point, and every section looked like the one above it.
 ///
 /// Deliberately the *same* well the fields below it are punched into, with the
-/// amber glyph on top, rather than a second colour per section. The card
+/// aqua glyph on top, rather than a second colour per section. The card
 /// already carries the section's identity; if the tile carried it too they
 /// would be the same colour and the tile would disappear. So the tile is a
 /// recess in the card — 1.44:1 to 1.74:1 below whichever tint hosts it — and
-/// the accent glyph reads at 9.06:1 on it whichever section it is.
+/// the accent glyph reads at 14.14:1 on it whichever section it is.
 ///
 /// Fixed size rather than text-scaled — it is an icon, not a line of copy, and
 /// growing it with the type size only steals width from the heading beside it.
