@@ -34,20 +34,23 @@ function PageGuides({ height }: { height: number }) {
             left: 0,
             right: 0,
             top: (i + 1) * A4_HEIGHT_PX,
-            borderTop: '2px dashed rgba(239, 68, 68, 0.55)',
+            // Brand aqua (aqua-600), not alarm red: a page break is not an error.
+            borderTop: '2px dashed rgba(10, 165, 192, 0.7)',
           }}
         >
           <span
             style={{
               position: 'absolute',
               right: 8,
-              top: 4,
+              top: 5,
               fontSize: 11,
-              fontFamily: 'system-ui, sans-serif',
-              color: 'rgba(239, 68, 68, 0.85)',
-              background: 'rgba(255, 255, 255, 0.9)',
-              padding: '1px 6px',
-              borderRadius: 4,
+              fontWeight: 600,
+              lineHeight: '16px',
+              fontFamily: 'Inter, system-ui, sans-serif',
+              color: '#ffffff',
+              background: 'rgba(14, 127, 153, 0.92)',
+              padding: '1px 8px',
+              borderRadius: 999,
             }}
           >
             Page {i + 2}

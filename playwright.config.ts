@@ -7,6 +7,9 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
   reporter: 'list',
+  // Each test renders real PDFs through Chromium; on a cold dev server the
+  // first requests also wait for Vite to compile. 30s was flaky there.
+  timeout: 60_000,
   use: {
     baseURL: 'http://localhost:5173',
     trace: 'on-first-retry',

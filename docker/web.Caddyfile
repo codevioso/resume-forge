@@ -21,6 +21,10 @@
 	# The app uses client-side routing (BrowserRouter): /editor, /templates and
 	# /print are not files. Without this fallback the pdf-service's request for
 	# /print would be a 404 and every export would fail.
+	# Installable-app manifest: browsers expect this media type.
+	@manifest path *.webmanifest
+	header @manifest Content-Type "application/manifest+json"
+
 	try_files {path} /index.html
 	file_server
 }

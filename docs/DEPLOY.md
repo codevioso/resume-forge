@@ -1,4 +1,4 @@
-# Deploying Resume Forge
+# Deploying Paperplane
 
 The web app and its PDF service run as three containers on one VPS, started by
 one `docker compose` command. This guide takes a fresh server to a working,
@@ -117,10 +117,10 @@ DNS to propagate; starting the stack early only burns Let's Encrypt attempts
 ### 4.1 Get the code
 
 ```bash
-sudo mkdir -p /opt/resume-forge
-sudo chown "$USER" /opt/resume-forge
-git clone https://github.com/<you>/resume-forge.git /opt/resume-forge
-cd /opt/resume-forge
+sudo mkdir -p /opt/paperplane
+sudo chown "$USER" /opt/paperplane
+git clone https://github.com/<you>/<repo>.git /opt/paperplane
+cd /opt/paperplane
 ```
 
 ### 4.2 Configure
@@ -197,7 +197,7 @@ The site is live.
 ## 5. Updating
 
 ```bash
-cd /opt/resume-forge
+cd /opt/paperplane
 git pull
 docker compose up -d --build
 docker image prune -f
@@ -391,9 +391,15 @@ process exits.
 
 ### The site shows an old version after an update
 
-`index.html` is served with `Cache-Control: no-cache`, so a normal reload picks
-up the new build. If it does not, confirm the new image actually started:
-`docker compose ps` shows the container's age.
+The app is installable (a PWA) and its service worker keeps a copy of the app
+so it opens offline. After a deploy, the service worker fetches the new
+version in the background and switches to it on the next page load, so a
+user may see the old version for one more visit — that is expected. `sw.js`
+and `index.html` are served with `Cache-Control: no-cache`, so the check for a
+new version always reaches the server.
+
+If a reload twice still shows the old version, confirm the new image actually
+started: `docker compose ps` shows the container's age.
 
 ---
 
@@ -411,6 +417,23 @@ must name the same version, or rendering fails at launch:
 
 Then `npm install` in the repository root and in `pdf-service/`, run the tests
 (below) and deploy.
+
+### Installable app (PWA)
+
+`vite.config.ts` configures the manifest (name, colours, icons in
+`public/icons/`) and the service worker. Installing needs HTTPS, which the
+edge provides. The service worker caches the app shell and fonts; it never
+caches `/api/pdf`, so exports always reach the PDF service. The PDF service
+blocks service workers in its own browser, so they cannot affect rendering.
+
+To change the app icons, edit `public/favicon.svg` (the vector plane) and
+re-render the PNGs in `public/icons/` at the same sizes.
+
+### Changing the product name
+
+The name shown in the app comes from `src/constants/brand.ts`, the logo from
+`public/logo/logo.png` (`src/components/BrandMark.tsx`), and the installed
+app's name from the manifest in `vite.config.ts`.
 
 ### Adding a template
 

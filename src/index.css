@@ -1,112 +1,181 @@
 @import "tailwindcss";
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
+/*
+ * Paperplane design system.
+ *
+ * Colours come from the logo (public/logo/logo.png): navy "ink" for text and
+ * primary actions, the plane's aqua as the accent, mint as the second accent.
+ * Neutrals are Tailwind's slate. The app is light: the logo's navy wordmark is
+ * built for a light background.
+ *
+ * Use the tokens (`bg-ink-900`, `text-aqua-700`, `ring-aqua-400`…) and the
+ * component classes below (`btn-primary`, `card`, `field-input`…) rather than
+ * one-off colours, so every page reads as the same product.
+ */
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
 
-::-webkit-scrollbar-track {
-  background: rgba(15, 23, 42, 0.3);
-}
+  /* Navy from the wordmark (#151c48 is the logo's exact colour). */
+  --color-ink-50: #eef0fa;
+  --color-ink-100: #dde1f4;
+  --color-ink-200: #bcc3e8;
+  --color-ink-300: #8f99d2;
+  --color-ink-400: #5f6bb3;
+  --color-ink-500: #414c96;
+  --color-ink-600: #313a7c;
+  --color-ink-700: #252d66;
+  --color-ink-800: #1c2355;
+  --color-ink-900: #151c48;
+  --color-ink-950: #0c1130;
 
-::-webkit-scrollbar-thumb {
-  background: rgba(99, 102, 241, 0.3);
-  border-radius: 4px;
-}
+  /* The plane's aqua (#0ef0f8). 400 is the logo colour: for fills and
+     accents on ink, never for text on white. 700+ is readable on white. */
+  --color-aqua-50: #ecfeff;
+  --color-aqua-100: #cdfcfe;
+  --color-aqua-200: #9bf8fc;
+  --color-aqua-300: #5ff4fa;
+  --color-aqua-400: #0ef0f8;
+  --color-aqua-500: #06cfe0;
+  --color-aqua-600: #0aa5c0;
+  --color-aqua-700: #0e7f99;
+  --color-aqua-800: #13667c;
+  --color-aqua-900: #155468;
 
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(99, 102, 241, 0.5);
-}
+  /* The mint accents (#66f6be). */
+  --color-mint-50: #edfdf6;
+  --color-mint-100: #d2fbe9;
+  --color-mint-200: #a9f7d6;
+  --color-mint-300: #7ff2c6;
+  --color-mint-400: #66f6be;
+  --color-mint-500: #2fdc9b;
+  --color-mint-600: #16b37c;
+  --color-mint-700: #108c62;
+  --color-mint-800: #106f4f;
+  --color-mint-900: #0f5b42;
 
-/* Smooth scrolling */
-html {
-  scroll-behavior: smooth;
-}
+  --shadow-soft: 0 1px 2px rgb(21 28 72 / 0.04), 0 8px 24px -8px rgb(21 28 72 / 0.12);
+  --shadow-lift: 0 2px 4px rgb(21 28 72 / 0.05), 0 20px 48px -16px rgb(21 28 72 / 0.25);
 
-/* Hide scrollbar for snap container */
-.snap-x::-webkit-scrollbar {
-  height: 4px;
-}
+  --animate-fade-in: fade-in 0.3s ease-out both;
+  --animate-rise: rise 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  --animate-sheet-up: sheet-up 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 
-/* Focus styles */
-*:focus-visible {
-  outline: 2px solid rgba(99, 102, 241, 0.5);
-  outline-offset: 2px;
-}
-
-/* Selection styles */
-::selection {
-  background: rgba(99, 102, 241, 0.3);
-  color: white;
-}
-
-/* Range input styling */
-input[type="range"] {
-  -webkit-appearance: none;
-  appearance: none;
-  background: transparent;
-}
-
-input[type="range"]::-webkit-slider-track {
-  background: rgba(100, 116, 139, 0.3);
-  border-radius: 4px;
-  height: 6px;
-}
-
-input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #6366f1, #a855f7);
-  cursor: pointer;
-  margin-top: -5px;
-}
-
-/* Checkbox styling */
-input[type="checkbox"] {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 18px;
-  height: 18px;
-  border: 2px solid rgba(100, 116, 139, 0.5);
-  border-radius: 4px;
-  background: rgba(15, 23, 42, 0.5);
-  cursor: pointer;
-  position: relative;
-}
-
-input[type="checkbox"]:checked {
-  background: linear-gradient(135deg, #6366f1, #a855f7);
-  border-color: transparent;
-}
-
-input[type="checkbox"]:checked::after {
-  content: '';
-  position: absolute;
-  left: 5px;
-  top: 2px;
-  width: 5px;
-  height: 9px;
-  border: solid white;
-  border-width: 0 2px 2px 0;
-  transform: rotate(45deg);
-}
-
-/* Animation for fade in */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes sheet-up {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
   }
 }
 
-.animate-fade-in {
-  animation: fadeIn 0.3s ease-out forwards;
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    @apply bg-white text-ink-900 antialiased;
+  }
+  /* The resume canvas takes nothing from the app's theme. Templates set their
+     own fonts and colours; whatever one leaves unset must fall back to the
+     browser default (black), as it always has — otherwise the app's navy body
+     text would leak into resumes and change every exported PDF. */
+  [data-resume-preview] {
+    color: #000;
+  }
+  ::selection {
+    @apply bg-aqua-200 text-ink-950;
+  }
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-aqua-700;
+  }
+  /* Checkboxes and range sliders in the brand colour. */
+  input[type="checkbox"],
+  input[type="radio"],
+  input[type="range"] {
+    accent-color: var(--color-ink-900);
+  }
+}
+
+/* Buttons. Min 44px tall: a comfortable touch target. */
+@utility btn {
+  @apply inline-flex min-h-11 select-none items-center justify-center gap-2 rounded-xl px-5 text-sm font-semibold whitespace-nowrap transition
+    disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98];
+}
+@utility btn-primary {
+  @apply btn bg-ink-900 text-white shadow-soft hover:bg-ink-800;
+}
+@utility btn-accent {
+  @apply btn bg-aqua-400 text-ink-950 shadow-soft hover:bg-aqua-300;
+}
+@utility btn-secondary {
+  @apply btn border border-slate-200 bg-white text-ink-900 hover:border-slate-300 hover:bg-slate-50;
+}
+@utility btn-ghost {
+  @apply btn text-ink-700 hover:bg-ink-50;
+}
+@utility btn-danger {
+  @apply btn border border-red-200 bg-white text-red-600 hover:bg-red-50;
+}
+@utility btn-lg {
+  @apply min-h-13 rounded-2xl px-7 text-base;
+}
+@utility btn-icon {
+  @apply inline-flex size-11 items-center justify-center rounded-xl text-ink-700 transition hover:bg-ink-50 active:scale-95;
+}
+
+/* Surfaces. */
+@utility card {
+  @apply rounded-2xl border border-slate-200/80 bg-white shadow-soft;
+}
+
+/* Form fields. 16px text on phones so iOS does not zoom into the field. */
+@utility field-label {
+  @apply mb-1.5 block text-sm font-medium text-ink-800;
+}
+@utility field-input {
+  @apply block w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-base text-ink-900 shadow-xs transition
+    placeholder:text-slate-400 hover:border-slate-400 focus:border-aqua-600 focus:ring-4 focus:ring-aqua-100 focus:outline-none sm:text-sm;
+}
+@utility field-hint {
+  @apply mt-1.5 text-xs text-slate-500;
+}
+
+/* Filter chips and pills. */
+@utility chip {
+  @apply inline-flex min-h-9 items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3.5 text-sm font-medium text-ink-700 transition hover:border-slate-300;
+}
+@utility chip-active {
+  @apply chip border-ink-900 bg-ink-900 text-white hover:border-ink-900;
+}
+
+/* Section eyebrow above a heading. */
+@utility eyebrow {
+  @apply text-xs font-semibold tracking-[0.14em] text-aqua-700 uppercase;
+}
+
+@layer utilities {
+  /* Insets for the notch and home indicator when installed as an app
+     (index.html sets viewport-fit=cover). */
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .pb-safe-4 {
+    padding-bottom: calc(env(safe-area-inset-bottom) + 1rem);
+  }
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
 }

@@ -1,4 +1,4 @@
-# Resume Forge
+# Paperplane
 
 A resume builder for the web: fill in your details, pick one of 20 templates,
 and download a PDF that matches the preview exactly, across as many A4 pages as
@@ -6,7 +6,8 @@ the resume needs. Every template prints every field you fill in, and email,
 phone, LinkedIn, website and project links are clickable in the PDF.
 
 The resume is saved in your browser as you type (localStorage) and never
-stored on the server.
+stored on the server. Paperplane installs as an app on phones and desktops
+(PWA), and the editor works offline; exporting a PDF needs a connection.
 
 ## How it fits together
 

@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from 'react';
+import { createContext, useContext, type CSSProperties, type ReactNode } from 'react';
 import type { Education } from '../types/resume';
 
 /**
@@ -70,6 +70,14 @@ export function displayUrl(value?: string): string {
 }
 
 /**
+ * True inside previews that sit in something clickable (gallery cards, the
+ * landing page's showcase): there a contact link renders as plain text, since
+ * a link inside a link is invalid HTML. The editor preview and the PDF keep
+ * real links.
+ */
+export const StaticLinks = createContext(false);
+
+/**
  * A contact value that is a working link in the PDF (and opens in a new tab
  * from the preview, so a click never leaves the editor). Styled exactly like
  * the text around it unless `style` says otherwise. A URL is shown without its
@@ -88,7 +96,8 @@ export function ContactLink({
 }) {
   const content = children ?? (kind === 'url' ? displayUrl(value) : value);
   const href = contactHref(kind, value);
-  if (!href) return <span style={style}>{content}</span>;
+  const isStatic = useContext(StaticLinks);
+  if (!href || isStatic) return <span style={style}>{content}</span>;
   return (
     <a href={href} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none', ...style }}>
       {content}
