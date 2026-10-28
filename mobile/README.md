@@ -1,4 +1,4 @@
-# Resume Studio
+# Paperplane
 
 A no-signup resume builder. Pick a design, fill in one form, watch a live
 preview, export a print-ready PDF. No accounts, no backend, no network — every
@@ -30,7 +30,7 @@ API keys, `.env` files, or services to start.
 ## Tests
 
 ```
-flutter test        # 643 tests
+flutter test        # 1,383 tests
 flutter analyze     # expected: no issues
 dart format .
 ```

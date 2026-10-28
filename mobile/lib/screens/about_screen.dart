@@ -131,16 +131,19 @@ class AboutScreen extends StatelessWidget {
   }
 }
 
-/// The product name, with the one letter the brand colours.
+/// The product name, with the part of it the brand colours.
 ///
-/// The logo is a serif wordmark whose only colour is a gold dot on the
-/// "i". The app cannot reproduce the logo's typeface — the UI is set in Inter,
-/// and a second chrome typeface bundled to print six letters would be a bigger
+/// The logo is a navy wordmark with an aqua paper plane taking off above it.
+/// The app cannot reproduce the logo's lettering — the UI is set in Inter, and
+/// a second chrome typeface bundled to print ten letters would be a bigger
 /// change than the cue is worth — so what is carried inside the app is the
-/// *accent*, not the drawing: the "i" takes [ColorScheme.primary], which is the
-/// same amber as the mark's gold (8.73:1 on the base surface, so the letter is
-/// legible type rather than decoration). At UI sizes the stem of an "i" is a
-/// hairline, so what the eye actually reads is the gold dot.
+/// *accent*, not the drawing: "plane", the word the logo pairs with its paper
+/// plane, takes [ColorScheme.primary], which is the plane's own aqua (13.63:1
+/// on the base surface, so the word is legible type rather than decoration).
+/// The navy of the letters is not carried over: on a matte black base it would
+/// all but vanish, so "Paper" stays in the heading ink. The two halves are only
+/// 1.24:1 apart in brightness and are told apart by hue — fine for a name that
+/// reads the same whichever way it is seen.
 ///
 /// It is deliberately **not** a picture. The pictorial mark belongs to the
 /// launcher icon and the splash, which are generated from one geometry in
@@ -164,12 +167,11 @@ class BrandWordmark extends StatelessWidget {
     return Text.rich(
       TextSpan(
         children: [
-          TextSpan(text: appName.substring(0, appNameAccentLetter)),
+          TextSpan(text: appName.substring(0, appNameAccentStart)),
           TextSpan(
-            text: appName[appNameAccentLetter],
+            text: appName.substring(appNameAccentStart),
             style: TextStyle(color: theme.colorScheme.primary),
           ),
-          TextSpan(text: appName.substring(appNameAccentLetter + 1)),
         ],
       ),
       style: style,
@@ -192,7 +194,7 @@ class _BrandBlock extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Shrinks rather than clips. "Resume Studio" breaks at the space, so this
+        // Shrinks rather than clips. "Paperplane" is one word with no
         // wrap opportunity in it, so at an extreme accessibility text size the
         // only alternatives are cutting the product's name in half or running
         // it off the edge of the screen. It fits unscaled well past 3x on the
@@ -270,8 +272,8 @@ class _PrivacyCard extends StatelessWidget {
 
 /// One guarantee: an accent tick and the fact it is vouching for.
 ///
-/// The tick is `primary` on the slate tint at 5.94:1 — past what a meaningful
-/// graphic needs by a factor of two, and past AA for text as well, which is the
+/// The tick is `primary` on the slate tint at 9.27:1 — past what a meaningful
+/// graphic needs three times over, and past AA for text as well, which is the
 /// bar a mark carrying this much of the screen's meaning should clear. The copy
 /// beside it is `onSurface` rather than the muted ink the rest of the screen's
 /// prose takes: these are the headline facts of the card, not its footnotes.

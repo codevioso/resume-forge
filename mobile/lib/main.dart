@@ -43,7 +43,7 @@ Future<void> main() async {
     return true;
   };
 
-  runApp(const ResumeStudioApp());
+  runApp(const PaperplaneApp());
 }
 
 /// Opens local storage.
@@ -59,18 +59,18 @@ Future<ResumeRepository> openStorage() async {
   return HiveResumeRepository.open();
 }
 
-class ResumeStudioApp extends StatefulWidget {
-  const ResumeStudioApp({super.key, this.startup = openStorage});
+class PaperplaneApp extends StatefulWidget {
+  const PaperplaneApp({super.key, this.startup = openStorage});
 
   /// Injected so tests can drive a slow, a failing, and a recovering start
   /// without a real Hive box.
   final Future<ResumeRepository> Function() startup;
 
   @override
-  State<ResumeStudioApp> createState() => _ResumeStudioAppState();
+  State<PaperplaneApp> createState() => _PaperplaneAppState();
 }
 
-class _ResumeStudioAppState extends State<ResumeStudioApp> {
+class _PaperplaneAppState extends State<PaperplaneApp> {
   /// Built once rather than per rebuild: the theme is a pure function of
   /// nothing, and both slots below want the same instance.
   final ThemeData _theme = AppTheme.build();

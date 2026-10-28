@@ -88,9 +88,10 @@ void main() {
       expect(text.semanticsLabel, appName);
     });
 
-    /// The logo's only colour is the gold dot on its "i", and the app's
-    /// amber is that gold. It comes from the scheme rather than from a literal.
-    testWidgets('one letter carries the brand accent, from the theme', (
+    /// The logo pairs "plane" with its paper plane, so that is the part of
+    /// the name the accent colours. It comes from the scheme rather than from
+    /// a literal.
+    testWidgets('"plane" carries the brand accent, from the theme', (
       tester,
     ) async {
       await pumpAbout(tester, const Size(390, 844));
@@ -99,8 +100,8 @@ void main() {
           .cast<TextSpan>();
       final accented = spans.where((s) => s.style?.color != null);
 
-      expect(accented, hasLength(1), reason: 'one accent letter, not a word');
-      expect(accented.single.text, 'i');
+      expect(accented, hasLength(1), reason: 'one accented run');
+      expect(accented.single.text, 'plane');
       expect(accented.single.style!.color, AppTheme.colorScheme.primary);
     });
 

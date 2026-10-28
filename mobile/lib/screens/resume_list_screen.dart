@@ -474,13 +474,13 @@ class _Greeting extends StatelessWidget {
 /// **The text-scale cap is gone.** It existed because "ResumeForge" is eleven
 /// characters and one unbreakable word, and past ~1.6x it had nothing left to
 /// do on a 360px phone beside a 48px icon button except ellipsize into
-/// "ResumeForg…". The name has since changed twice, and at thirteen characters
-/// "Resume Studio" is long enough that a 360px row at double text size runs out
-/// of width again — so the mark shrinks to fit instead of losing its last
-/// letters. `test/screens/resume_list_layout_test.dart` asserts the row's own
-/// outcome — that the name is never ellipsized and the button stays on screen —
-/// rather than the mechanism that happens to guarantee it, which is why those
-/// tests survived both renames.
+/// "ResumeForg…". The name has since changed three times; "Paperplane" is ten
+/// characters and again one unbreakable word, long enough that a 360px row at
+/// double text size can run out of width — so the mark shrinks to fit instead
+/// of losing its last letters. `test/screens/resume_list_layout_test.dart`
+/// asserts the row's own outcome — that the name is never ellipsized and the
+/// button stays on screen — rather than the mechanism that happens to
+/// guarantee it, which is why those tests survived every rename.
 @visibleForTesting
 class Wordmark extends StatelessWidget {
   const Wordmark({super.key});
@@ -488,10 +488,9 @@ class Wordmark extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    // Shrinks rather than clips. "Resume Studio" is thirteen characters where
-    // the previous name was six, and at double text size on a 360px phone it
-    // no longer fits the 288px this row leaves beside the icon button — it
-    // ellipsized to "Resume Stud…", which is the one thing a wordmark must
+    // Shrinks rather than clips. A long name at double text size on a 360px
+    // phone does not fit the 288px this row leaves beside the icon button — it
+    // once ellipsized to "Resume Stud…", which is the one thing a wordmark must
     // never do. `scaleDown` only ever engages once the name would not fit, so
     // at every ordinary text size the name still grows with the user's setting;
     // past that point it holds at the width of the row instead of losing its
@@ -1122,7 +1121,7 @@ class _IconTile extends StatelessWidget {
 @visibleForTesting
 const heroDiscKey = Key('hero-disc');
 
-/// The app's accent motif: one solid amber disc carrying the document glyph.
+/// The app's accent motif: one solid aqua disc carrying the document glyph.
 ///
 /// It used to be a five-stop pink/violet/blue ramp over a blurred copy of
 /// itself, and the ramp is why it needed maths: white was the only glyph colour
@@ -1132,15 +1131,16 @@ const heroDiscKey = Key('hero-disc');
 /// the ramp at fifty points, all in service of a decision the palette has now
 /// unmade. **All of it is deleted rather than left dormant.** A solid fill has
 /// one contrast pair, and it is the same one the rest of the app uses:
-/// `onPrimary` on `primary`, 8.46:1, nearly three times what a meaningful
+/// `onPrimary` on `primary`, 13.20:1, more than four times what a meaningful
 /// graphic needs.
 ///
 /// The glow went with it. The brief for this palette is matte — no gloss, no
 /// gradient, no glow — and a blurred translucent halo is all three.
 ///
 /// The colour is the accent rather than a colour of its own, which also makes
-/// this the same amber the launcher icon's page is filled with: the mark on the
-/// home screen the user just tapped, and the first thing in the app they see.
+/// this the same aqua the launcher icon's mark is drawn in — the logo's paper
+/// plane colour: the mark on the home screen the user just tapped, and the
+/// first thing in the app they see.
 class _HeroDisc extends StatelessWidget {
   const _HeroDisc({required this.icon, required this.diameter});
 

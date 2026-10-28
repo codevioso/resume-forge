@@ -2,6 +2,29 @@
 
 Everything here happens in `mobile/`.
 
+## The application id
+
+`com.codevioso.paperplane` — `applicationId` and `namespace` in
+`android/app/build.gradle.kts`, and `PRODUCT_BUNDLE_IDENTIFIER` in
+`ios/Runner.xcodeproj/project.pbxproj`.
+
+It was `com.codevioso.resumestudio` until the product was renamed Paperplane.
+The change was made before anything had been uploaded to a store, so no listing
+and no user was affected. **After the first upload to Play it can never change
+again**: a different id is a different app, with its own listing, its own
+installs and its own storage.
+
+The rename does not touch the signing key. A keystore is not tied to an id, so
+the upload key and certificate below are unchanged and sign
+`com.codevioso.paperplane` exactly as they signed the old id.
+
+On a device or emulator that still has a build of the old id installed, the
+new build installs *beside* it as a second app rather than upgrading it, and
+the resumes saved in the old one stay in the old one. To keep a copy before
+uninstalling it, back the database up from the old install — debuggable builds
+only — with the `run-as` command under "Installing a release build over a debug
+build" below, using the old id.
+
 ## The signing key
 
 Release builds are signed with an upload key held in two files, both gitignored
@@ -85,7 +108,7 @@ install must uninstall first. **That destroys app storage**, including every
 saved resume. On a debug build the database can be pulled first:
 
 ```bash
-adb shell "run-as com.codevioso.resumestudio cat app_flutter/resumes.hive" > resumes.hive.backup
+adb shell "run-as com.codevioso.paperplane cat app_flutter/resumes.hive" > resumes.hive.backup
 ```
 
 `run-as` only works on debuggable builds, so this is a one-way door: you can

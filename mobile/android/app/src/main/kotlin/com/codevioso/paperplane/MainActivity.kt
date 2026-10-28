@@ -1,4 +1,4 @@
-package com.codevioso.resumestudio
+package com.codevioso.paperplane
 
 import io.flutter.embedding.android.FlutterActivity
 

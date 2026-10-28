@@ -17,7 +17,7 @@ Widget _app(
 }) {
   return MediaQuery(
     data: MediaQueryData(disableAnimations: reducedMotion),
-    child: ResumeStudioApp(startup: startup),
+    child: PaperplaneApp(startup: startup),
   );
 }
 
@@ -100,8 +100,8 @@ void main() {
     );
 
     // No time advanced at all: one frame for the splash to report its (static)
-    // entrance, one for the swap. Neither the 460ms entrance nor the 200ms
-    // crossfade is waited out.
+    // entrance, one for the swap. Neither the entrance (splashEntrance) nor the
+    // crossfade (splashHandoff) is waited out.
     await tester.pump(Duration.zero);
     await tester.pump(Duration.zero);
     expect(find.byType(ResumeListScreen), findsOneWidget);

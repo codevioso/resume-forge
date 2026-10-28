@@ -19,7 +19,7 @@ stored on the server. Paperplane installs as an app on phones and desktops
 | `docker/`, `docker-compose.yml` | Production stack: Caddy edge with automatic HTTPS, the static app, the PDF service. |
 | `e2e/` | Playwright tests, including pagination of every template. |
 | `docs/DEPLOY.md` | **Deployment guide** — fresh VPS to live site, updates, operations, troubleshooting. |
-| `mobile/` | The separate Flutter app (Resume Studio). Not part of the web deployment. |
+| `mobile/` | The Paperplane phone app (Flutter, Android and iOS). Built and released separately; not part of the web deployment. |
 
 The PDF is printed from the same page the user previews, so preview and PDF
 cannot drift: same components, same CSS, same bundled fonts.
