@@ -13,3 +13,5 @@ pdf-service
 .env.*
 !.env.example
 *.log
+api
+backups

@@ -28,3 +28,4 @@ playwright/.cache/
 # mobile/android and mobile/ios platform directories stay tracked.
 /android/
 /ios/
+/backups/

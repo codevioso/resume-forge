@@ -2,13 +2,16 @@
 #
 #   internet ──► edge (Caddy, TLS, :80/:443)
 #                  ├── /api/pdf ──► pdf  (Node + headless Chromium, :3040)
+#                  ├── /api/*   ──► api  (Node: accounts + saved resumes, :3050) ──► db (MySQL)
 #                  └── /*       ──► web  (static app, :8080)
 #                                    ▲
 #                  pdf ── /print ────┘  (renders the same page the user previews)
 #
-# Only `edge` is reachable from outside. `web` and `pdf` sit on an internal
-# network with no route to the internet, so a resume rendered by Chromium can
-# reach nothing but the web app it is printing.
+#   backup ──► db   (nightly dump into ./backups)
+#
+# Only `edge` is reachable from outside. `web`, `pdf` and `db` have no route to
+# the internet at all; `api` reaches out only to send email and to talk to
+# Google during sign-in.
 
 name: paperplane
 
@@ -42,6 +45,8 @@ services:
       web:
         condition: service_healthy
       pdf:
+        condition: service_healthy
+      api:
         condition: service_healthy
     logging: *logging
 
@@ -96,11 +101,95 @@ services:
         condition: service_healthy
     logging: *logging
 
+  api:
+    build:
+      context: ./api
+    image: paperplane-api:latest
+    restart: unless-stopped
+    environment:
+      PUBLIC_URL: https://${DOMAIN}
+      AUTH_SECRET: ${AUTH_SECRET:?set AUTH_SECRET in .env}
+      DATABASE_URL: mysql://paperplane:${DB_PASSWORD:?set DB_PASSWORD in .env}@db:3306/paperplane
+      # Email (verification, password reset, sign-in links). Both or neither;
+      # without them, email-and-password and sign-in links are switched off.
+      SMTP_URL: ${SMTP_URL:-}
+      EMAIL_FROM: ${EMAIL_FROM:-}
+      # Google sign-in. Both or neither.
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      MAX_RESUMES_PER_USER: ${MAX_RESUMES_PER_USER:-50}
+      TRUST_PROXY_HOPS: "1"
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 512m
+    # backend: reached by the edge. data: reaches the database.
+    # egress: the only service besides the edge with a route out — for SMTP
+    # and Google's token endpoint.
+    networks: [backend, data, egress]
+    depends_on:
+      db:
+        condition: service_healthy
+    logging: *logging
+
+  db:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: paperplane
+      MYSQL_USER: paperplane
+      MYSQL_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?set DB_ROOT_PASSWORD in .env}
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_0900_ai_ci
+      # Sized for a small VPS shared with Chromium; raise with more RAM.
+      - --innodb-buffer-pool-size=256M
+    volumes:
+      # Every account and resume lives here. Back it up (the backup service
+      # does nightly) and never `docker compose down -v` on a live server.
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping --host=127.0.0.1 --user=root --password=\"$$MYSQL_ROOT_PASSWORD\" --silent"]
+      interval: 10s
+      timeout: 5s
+      start_period: 60s
+      retries: 10
+    mem_limit: ${DB_MEMORY_LIMIT:-768m}
+    # Gives MySQL time to flush and shut down cleanly.
+    stop_grace_period: 60s
+    networks: [data]
+    logging: *logging
+
+  backup:
+    image: mysql:8.4
+    restart: unless-stopped
+    entrypoint: ["/bin/sh", "/backup.sh"]
+    environment:
+      MYSQL_PWD: ${DB_ROOT_PASSWORD:?set DB_ROOT_PASSWORD in .env}
+      BACKUP_KEEP_DAYS: ${BACKUP_KEEP_DAYS:-14}
+    volumes:
+      - ./docker/backup.sh:/backup.sh:ro
+      # On the host, next to docker-compose.yml. Copy it off the server too —
+      # a backup on the same disk does not survive losing the disk.
+      - ./backups:/backups
+    networks: [data]
+    depends_on:
+      db:
+        condition: service_healthy
+    logging: *logging
+
 networks:
   public: {}
   backend:
     internal: true
+  data:
+    internal: true
+  egress: {}
 
 volumes:
   caddy_data: {}
   caddy_config: {}
+  mysql_data: {}

@@ -26,6 +26,15 @@
 		}
 	}
 
+	# Accounts and saved resumes. Caddy tries the more specific /api/pdf above
+	# first; every other /api path is the API.
+	handle /api/* {
+		request_body {
+			max_size 4MB
+		}
+		reverse_proxy api:3050
+	}
+
 	# Everything else is the web app.
 	handle {
 		reverse_proxy web:8080
