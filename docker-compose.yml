@@ -1,4 +1,4 @@
-# Resume Forge — production stack. Full instructions: docs/DEPLOY.md
+# Paperplane — production stack. Full instructions: docs/DEPLOY.md
 #
 #   internet ──► edge (Caddy, TLS, :80/:443)
 #                  ├── /api/pdf ──► pdf  (Node + headless Chromium, :3040)
@@ -10,7 +10,7 @@
 # network with no route to the internet, so a resume rendered by Chromium can
 # reach nothing but the web app it is printing.
 
-name: resume-forge
+name: paperplane
 
 x-logging: &logging
   driver: json-file
@@ -49,7 +49,7 @@ services:
     build:
       context: .
       dockerfile: docker/web.Dockerfile
-    image: resume-forge-web:latest
+    image: paperplane-web:latest
     restart: unless-stopped
     read_only: true
     tmpfs:
@@ -64,7 +64,7 @@ services:
   pdf:
     build:
       context: ./pdf-service
-    image: resume-forge-pdf:latest
+    image: paperplane-pdf:latest
     restart: unless-stopped
     # Chromium spawns many processes; a real init reaps them.
     init: true

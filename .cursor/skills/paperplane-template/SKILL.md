@@ -1,9 +1,9 @@
 ---
-name: resume-forge-template
-description: Add or modify a ResumeForge resume template (registry, component, gallery, PDF parity).
+name: paperplane-template
+description: Add or modify a Paperplane resume template (registry, component, gallery, PDF parity).
 ---
 
-# Add a ResumeForge template
+# Add a Paperplane template
 
 ## 1. Pick an id
 

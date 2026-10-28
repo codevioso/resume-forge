@@ -1,5 +1,5 @@
 {
-  "name": "resume-forge-pdf-service",
+  "name": "paperplane-pdf-service",
   "private": true,
   "version": "1.0.0",
   "description": "Renders the web app's /print route to PDF with headless Chromium.",

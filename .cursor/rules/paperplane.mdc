@@ -1,0 +1,35 @@
+---
+description: Paperplane conventions — templates, pagination, fields, PDF export, and gallery
+globs: "**/*.{ts,tsx}"
+alwaysApply: false
+---
+
+# Paperplane
+
+## Templates
+
+- Register a template in [src/templates/registry.ts](src/templates/registry.ts): metadata in `templates` **and** an entry in `templateComponents` with the same `id`.
+- Follow **THE PAGINATION RULE** in [src/templates/paging.ts](src/templates/paging.ts): the root is `pageRoot` (A4 wide, grows with content — never a fixed height or `overflow: hidden`), entries `keepTogether`, headings `keepWithNext`, padded columns `repeatPadding`, full-bleed columns and tinted pages also render `<PageBackdrop>`.
+- Follow **THE FIELD RULE** in [src/templates/fields.tsx](src/templates/fields.tsx): print every field the editor collects, using `dateRange`, `degreeLine`, `gpaText`, `joinParts` and `ContactLink` (email, phone and URLs are clickable in the PDF).
+- Use the bundled font stacks in [src/templates/fonts.ts](src/templates/fonts.ts); fonts not bundled in `src/styles/fonts.css` will not be in the PDF.
+- **Do not** hand-build mini-previews for the gallery — use [TemplateThumbnail](src/components/TemplateThumbnail.tsx) (the real `ResumePreview` with `sampleResume`).
+- Prefer solid `color` for headings (avoid `background-clip: text`) so print matches screen.
+
+## PDF
+
+- The editor posts to `/api/pdf` on its own origin. In production the edge proxy routes it to [pdf-service](pdf-service/); in development the Vite proxy does ([vite.config.ts](vite.config.ts)). `VITE_PDF_SERVICE_URL` is only for a service on another origin.
+- The service prints the app's own `/print` route in Chromium, so the PDF is the same React templates as the preview. Its render origin is configuration (`RENDER_ORIGIN`), never request input.
+- Request validation lives in [pdf-service/lib/validate.mjs](pdf-service/lib/validate.mjs); keep it in step with [src/types/resume.ts](src/types/resume.ts). Skill `level` is a 0–100 percentage.
+
+## Data
+
+- The resume is saved in the browser (localStorage) by [src/context/resumeStorage.ts](src/context/resumeStorage.ts); only the app shell persists. Gallery and print routes pass fixed data via `ResumeProvider`'s `initialResumeData` / `initialTemplate`.
+
+## Tests
+
+- `npx playwright test`: `e2e/pagination.spec.ts` and `e2e/fields.spec.ts` render every registered template to a real PDF and read it back; `e2e/persistence.spec.ts` covers saving.
+- `cd pdf-service && npm test`: service unit and route tests.
+
+## Branding
+
+- The product name lives in [src/constants/brand.ts](src/constants/brand.ts) and the logo in [src/components/BrandMark.tsx](src/components/BrandMark.tsx).

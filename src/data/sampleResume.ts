@@ -56,7 +56,7 @@ export const sampleResume: ResumeData = {
   projects: [
     {
       id: 'p1',
-      name: 'ResumeForge',
+      name: 'Paperplane',
       description: 'Static resume builder with PDF export and template gallery.',
       link: 'https://example.com',
       technologies: 'Vite · React · Tailwind',

@@ -1,7 +1,7 @@
 import { chromium } from 'playwright';
 
 /** Must match `src/constants/pdfExport.ts`. */
-export const STORAGE_KEY = 'resume-forge-pdf-export';
+export const STORAGE_KEY = 'paperplane-pdf-export';
 
 /**
  * Counts pages in a PDF Chromium produced.

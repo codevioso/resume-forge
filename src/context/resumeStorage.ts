@@ -15,7 +15,7 @@ export interface ResumePersistence {
   save(resumeData: ResumeData, selectedTemplate: Template | null): boolean;
 }
 
-export const RESUME_STORAGE_KEY = 'resume-forge:resume';
+export const RESUME_STORAGE_KEY = 'paperplane:resume';
 
 type Stored = { v: 1; resumeData: unknown; templateId: unknown };
 
