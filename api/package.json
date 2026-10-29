@@ -11,7 +11,8 @@
     "build": "tsc -p tsconfig.json",
     "start": "node dist/server.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "tsx --test --test-concurrency=1 \"test/**/*.test.ts\""
+    "test": "tsx --test --test-concurrency=1 \"test/**/*.test.ts\"",
+    "credits": "tsx --env-file-if-exists=.env src/cli/credits.ts"
   },
   "dependencies": {
     "better-auth": "1.7.7",

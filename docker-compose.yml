@@ -118,6 +118,12 @@ services:
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
       MAX_RESUMES_PER_USER: ${MAX_RESUMES_PER_USER:-50}
+      # Credits and AI (docs/PLAN-2.0.md).
+      TRIAL_CREDITS: ${TRIAL_CREDITS:-300}
+      TRIAL_DAYS: ${TRIAL_DAYS:-15}
+      AI_ENABLED: ${AI_ENABLED:-false}
+      AI_RATE_PER_MINUTE: ${AI_RATE_PER_MINUTE:-10}
+      AI_DAILY_LIMIT: ${AI_DAILY_LIMIT:-100}
       TRUST_PROXY_HOPS: "1"
     read_only: true
     tmpfs:

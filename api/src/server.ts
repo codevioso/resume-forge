@@ -1,6 +1,9 @@
+import { AiService } from './ai/service.js';
+import { fakeModel } from './ai/model.js';
 import { createApp, log } from './app.js';
 import { createAuth } from './auth.js';
 import { ConfigError, loadConfig } from './config.js';
+import { CreditService } from './credits/service.js';
 import { createDatabase } from './db.js';
 import { smtpMailer } from './mailer.js';
 import { migrate } from './migrate.js';
@@ -18,7 +21,11 @@ try {
 
 const { db } = createDatabase(config.databaseUrl);
 const mailer = config.email ? smtpMailer(config.email.smtpUrl, config.email.from) : null;
-const auth = createAuth({ config, db, mailer });
+const credits = new CreditService({ db, trial: config.trial });
+// The real Claude client arrives with the first AI action (phase 2); until
+// then AI stays disabled (AI_ENABLED) and nothing calls the model.
+const ai = new AiService({ db, credits, model: fakeModel, limits: config.ai });
+const auth = createAuth({ config, db, mailer, onUserVerified: (user) => credits.ensureTrial(user) });
 
 // The database container can still be starting when this one is; retry
 // rather than crash-loop.
@@ -34,7 +41,7 @@ for (let attempt = 1; ; attempt++) {
   }
 }
 
-const app = createApp({ config, auth, db });
+const app = createApp({ config, auth, db, credits, ai });
 const server = app.listen(config.port, () => {
   log('info', {
     msg: 'listening',
@@ -42,6 +49,7 @@ const server = app.listen(config.port, () => {
     publicUrl: config.publicUrl,
     email: config.email !== null,
     google: config.google !== null,
+    ai: config.ai.enabled,
   });
 });
 

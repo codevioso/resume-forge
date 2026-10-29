@@ -20,8 +20,16 @@ const COLUMNS: { title: string; links: FooterLink[] }[] = [
     title: 'Help',
     links: [
       { label: 'FAQ', section: 'faq' },
-      { label: 'Privacy', section: 'privacy' },
       { label: 'Install the app', section: 'install' },
+    ],
+  },
+  {
+    title: 'Legal',
+    links: [
+      { label: 'Terms of Service', to: '/terms' },
+      { label: 'Privacy Policy', to: '/privacy' },
+      { label: 'Refund Policy', to: '/refunds' },
+      { label: 'Contact us', to: '/contact' },
     ],
   },
 ];
@@ -33,7 +41,7 @@ export function LandingFooter() {
   const year = new Date().getFullYear();
   return (
     <footer className="pb-safe border-t border-slate-200/80">
-      <Container className="grid grid-cols-2 gap-x-6 gap-y-10 py-12 sm:py-14 md:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)_minmax(0,1fr)]">
+      <Container className="grid grid-cols-2 gap-x-6 gap-y-10 py-12 sm:py-14 md:grid-cols-[minmax(0,1.6fr)_repeat(3,minmax(0,1fr))]">
         <div className="col-span-2 max-w-xs md:col-span-1">
           <Link to="/" aria-label={`${APP_NAME} home`} className="-ml-1 inline-flex rounded-lg p-1">
             <BrandMark className="h-10" />

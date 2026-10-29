@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from 'react';
-import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import type { LucideIcon } from 'lucide-react';
 import {
   ArrowLeft,
@@ -11,9 +11,11 @@ import {
   Mail,
   MonitorSmartphone,
   Pencil,
+  Sparkles,
   Trash2,
 } from 'lucide-react';
 import { authClient } from '../lib/authClient';
+import { withdrawAiConsent } from '../lib/creditsApi';
 import { listResumes } from '../lib/resumesApi';
 import { BrandMark, PlaneMark } from '../components/BrandMark';
 import { AccountMenu } from '../components/account/AccountMenu';
@@ -30,12 +32,17 @@ import {
   useAuthMethods,
   type AccountUser,
 } from '../components/account/authHelpers';
+import { AccountCredits } from '../components/credits/AccountCredits';
+import { AI_PRIVACY_HREF, AiConsentDialog } from '../components/credits/AiConsentDialog';
+import { formatDayFull } from '../components/credits/format';
+import { setAiConsentAt, useCredits } from '../components/credits/useCredits';
 import { APP_NAME } from '../constants/brand';
 import { cn } from '../utils/cn';
 
 /**
- * `/account`: who is signed in, how they sign in, their password, their
- * devices, signing out, and deleting the account with everything in it.
+ * `/account`: who is signed in, their credits (`#credits`) and AI consent
+ * (`#ai`), how they sign in, their password, their devices, signing out, and
+ * deleting the account with everything in it.
  */
 export function AccountPage() {
   const { user, isPending } = useAccount();
@@ -143,6 +150,16 @@ function AccountView({
 
   const hasPassword = providers?.password ?? false;
 
+  // Links to a section (the header's balance goes to #credits) land on it.
+  const { hash } = useLocation();
+  useEffect(() => {
+    if (!hash) return;
+    const id = decodeURIComponent(hash.slice(1));
+    // After this render's layout, so the section is in place.
+    const frame = requestAnimationFrame(() => document.getElementById(id)?.scrollIntoView({ block: 'start', behavior: 'instant' }));
+    return () => cancelAnimationFrame(frame);
+  }, [hash]);
+
   return (
     <div className="min-h-dvh bg-slate-50">
       <AccountHeader />
@@ -150,6 +167,10 @@ function AccountView({
         <h1 className="sr-only text-3xl font-extrabold tracking-[-0.03em] text-ink-900 md:not-sr-only md:mb-8">Account</h1>
 
         <ProfileCard user={user} />
+
+        <AccountCredits emailVerified={user.emailVerified} />
+
+        <AiSection />
 
         <Section title="How you sign in">
           {providers === null ? (
@@ -213,7 +234,7 @@ function AccountView({
                 : resumeCount === 1
                   ? 'the 1 resume saved in it'
                   : `the ${resumeCount} resumes saved in it`}
-              . This can&rsquo;t be undone.
+              , along with any credits left. This can&rsquo;t be undone.
             </p>
             <button type="button" onClick={() => setDeleting(true)} className="btn-danger mt-4 w-full sm:w-auto">
               <Trash2 className="size-4" aria-hidden="true" />
@@ -221,6 +242,8 @@ function AccountView({
             </button>
           </div>
         </section>
+
+        <PolicyLinks />
       </main>
 
       {deleting && (
@@ -238,10 +261,10 @@ function AccountView({
 
 // ---------------------------------------------------------------------------
 
-function Section({ title, children }: { title: string; children: ReactNode }) {
+function Section({ title, anchor, children }: { title: string; anchor?: string; children: ReactNode }) {
   const id = `section-${title.toLowerCase().replace(/\W+/g, '-')}`;
   return (
-    <section aria-labelledby={id} className="mt-8">
+    <section id={anchor} aria-labelledby={id} className="mt-8 scroll-mt-20 md:scroll-mt-24">
       <h2 id={id} className="mb-2.5 px-1 text-[13px] font-semibold tracking-wide text-slate-500 uppercase">
         {title}
       </h2>
@@ -617,6 +640,127 @@ function DevicesRow({ count, onChanged }: { count: number | null; onChanged: () 
   );
 }
 
+// ---------------------------------------------------------------------------
+
+/** Consent to AI processing: given (with the date) or not, and the switch to change it. */
+function AiSection() {
+  const { summary, status } = useCredits();
+  const [asking, setAsking] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState<{ tone: 'success' | 'error'; text: string } | null>(null);
+  const at = summary?.aiConsentAt ?? null;
+
+  const withdraw = async () => {
+    setBusy(true);
+    setResult(null);
+    try {
+      await withdrawAiConsent();
+      setAiConsentAt(null);
+      setResult({ tone: 'success', text: 'Consent withdrawn. We’ll ask again before any AI action.' });
+    } catch (e) {
+      setResult({ tone: 'error', text: (e as Error).message });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Section title="AI features" anchor="ai">
+      {!summary ? (
+        status === 'error' ? (
+          <Row icon={Sparkles} title="AI processing" detail="Couldn’t load this setting. Reload the page to try again." />
+        ) : (
+          <RowSkeleton />
+        )
+      ) : (
+        <Row
+          icon={Sparkles}
+          title="AI processing"
+          detail={
+            at
+              ? `Allowed on ${formatDayFull(at)}. The text you choose is sent to Anthropic’s Claude to write suggestions.`
+              : 'Off. We’ll ask before your first AI action.'
+          }
+          below={
+            <>
+              <div className="mt-3.5 flex flex-col gap-3 sm:ml-[3.375rem] sm:flex-row sm:items-center sm:gap-5">
+                {at ? (
+                  <button type="button" className="btn-secondary w-full sm:w-auto" onClick={withdraw} disabled={busy}>
+                    {busy && <Spinner className="size-4" />}
+                    Withdraw consent
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    className="btn-primary w-full sm:w-auto"
+                    onClick={() => {
+                      setResult(null);
+                      setAsking(true);
+                    }}
+                  >
+                    Allow AI processing
+                  </button>
+                )}
+                <Link
+                  to={AI_PRIVACY_HREF}
+                  className="self-center text-[13px] font-semibold text-aqua-800 underline decoration-aqua-300 underline-offset-2 hover:decoration-aqua-700 sm:self-auto"
+                >
+                  How we handle AI processing
+                </Link>
+              </div>
+              {result && (
+                <AuthAlert tone={result.tone} className="mt-4">
+                  {result.text}
+                </AuthAlert>
+              )}
+            </>
+          }
+        >
+          <span data-ai-consent={at ? 'given' : 'none'}>
+            {at ? <StatusChip tone="mint">Allowed</StatusChip> : <StatusChip tone="slate">Off</StatusChip>}
+          </span>
+        </Row>
+      )}
+      {asking && (
+        <AiConsentDialog
+          onDone={(consented) => {
+            setAsking(false);
+            if (consented) setResult({ tone: 'success', text: 'AI processing allowed. You can withdraw it here at any time.' });
+          }}
+        />
+      )}
+    </Section>
+  );
+}
+
+/** Terms, privacy, refunds and contact, at the foot of the page. */
+function PolicyLinks() {
+  const links = [
+    { to: '/terms', label: 'Terms' },
+    { to: '/privacy', label: 'Privacy' },
+    { to: '/refunds', label: 'Refunds' },
+    { to: '/contact', label: 'Contact' },
+  ];
+  return (
+    <nav aria-label="Policies" className="mt-8 mb-2 border-t border-slate-200/80 pt-4">
+      <ul className="flex flex-wrap items-center justify-center text-[13px] text-slate-500">
+        {links.map((link, i) => (
+          <li key={link.to} className="flex items-center">
+            {i > 0 && (
+              <span aria-hidden="true" className="text-slate-300">
+                ·
+              </span>
+            )}
+            <Link to={link.to} className="inline-flex min-h-11 items-center rounded-lg px-2.5 font-medium transition hover:text-ink-900">
+              {link.label}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  );
+}
+
 function AccountDeleted() {
   return (
     <div className="pt-safe pb-safe flex min-h-dvh flex-col items-center justify-center bg-white px-4 text-center">
@@ -625,7 +769,7 @@ function AccountDeleted() {
         Your account was deleted
       </h1>
       <p className="mt-3 max-w-sm text-[0.9375rem] leading-relaxed text-slate-600">
-        Your account and the resumes saved in it are gone for good. You can still build a resume here without an account
+        Your account, the resumes saved in it and its credits are gone for good. You can still build a resume here without an account
         whenever you like.
       </p>
       <Link to="/" className="btn-primary btn-lg mt-8">

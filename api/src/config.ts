@@ -27,6 +27,9 @@ export interface Config {
   rateLimit: boolean;
   /** Proxies in front (the edge) whose X-Forwarded-For is trusted for the client IP. */
   trustProxyHops: number;
+  /** Free credits for a newly confirmed account, and how many days they last. */
+  trial: { credits: number; days: number };
+  ai: { enabled: boolean; perMinute: number; perDay: number };
 }
 
 export class ConfigError extends Error {}
@@ -95,5 +98,15 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     maxResumesPerUser: int(env, 'MAX_RESUMES_PER_USER', 50, 1, 1000),
     rateLimit: env.NODE_ENV !== 'test',
     trustProxyHops: int(env, 'TRUST_PROXY_HOPS', 0, 0, 5),
+    trial: {
+      credits: int(env, 'TRIAL_CREDITS', 300, 0, 100_000),
+      days: int(env, 'TRIAL_DAYS', 15, 1, 3650),
+    },
+    ai: {
+      // Off until a model is configured (phase 2); the credits work regardless.
+      enabled: env.AI_ENABLED === 'true',
+      perMinute: int(env, 'AI_RATE_PER_MINUTE', 10, 1, 1000),
+      perDay: int(env, 'AI_DAILY_LIMIT', 100, 1, 100_000),
+    },
   });
 }

@@ -20,6 +20,8 @@ import {
 
 type Mode = 'password' | 'link';
 
+const legalLink = 'whitespace-nowrap font-medium text-ink-800 underline decoration-slate-300 underline-offset-2 hover:decoration-ink-800';
+
 export function SignUpPage() {
   const [params] = useSearchParams();
   const location = useLocation();
@@ -221,6 +223,19 @@ export function SignUpPage() {
               )}
             </form>
           )}
+
+          {/* Google sign-up creates an account too, so this sits below both. New tab: the form keeps what was typed. */}
+          <p className="mt-6 text-center text-[13px] leading-relaxed text-pretty text-slate-500">
+            By creating an account, you agree to the{' '}
+            <Link to="/terms" target="_blank" rel="noopener" className={legalLink}>
+              Terms of Service
+            </Link>{' '}
+            and{' '}
+            <Link to="/privacy" target="_blank" rel="noopener" className={legalLink}>
+              Privacy Policy
+            </Link>
+            .
+          </p>
         </>
       )}
     </AuthLayout>

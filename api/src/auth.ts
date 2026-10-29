@@ -23,7 +23,18 @@ import { actionEmail, type Mailer } from './mailer.js';
  * registering someone else's address with a password cannot later capture
  * their Google identity.
  */
-export function createAuth({ config, db, mailer }: { config: Config; db: Kysely<Database>; mailer: Mailer | null }) {
+export function createAuth({
+  config,
+  db,
+  mailer,
+  onUserVerified,
+}: {
+  config: Config;
+  db: Kysely<Database>;
+  mailer: Mailer | null;
+  /** Runs when an account exists with a confirmed email (the free trial). */
+  onUserVerified?: (user: { id: string; emailVerified: boolean }) => Promise<unknown>;
+}) {
   const emailEnabled = mailer !== null;
   const send = async (email: Parameters<Mailer['send']>[0]) => {
     if (!mailer) throw new Error('Email is not configured');
@@ -110,6 +121,25 @@ export function createAuth({ config, db, mailer }: { config: Config; db: Kysely<
       // The account page offers "Delete my account"; resumes go with it
       // (ON DELETE CASCADE).
       deleteUser: { enabled: true },
+    },
+
+    // An account is confirmed either at creation (Google, sign-in link) or
+    // later, when a password account follows its confirmation link. Both
+    // routes reach onUserVerified; a failure there must not break sign-in
+    // (the credits page grants a missed trial anyway).
+    databaseHooks: {
+      user: {
+        create: {
+          after: async (user) => {
+            if (user.emailVerified) await onUserVerified?.(user).catch(() => undefined);
+          },
+        },
+        update: {
+          after: async (user) => {
+            if (user.emailVerified) await onUserVerified?.(user).catch(() => undefined);
+          },
+        },
+      },
     },
 
     session: {

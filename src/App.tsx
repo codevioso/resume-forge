@@ -13,6 +13,10 @@ import { SignUpPage } from './pages/auth/SignUpPage';
 import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage';
 import { ResetPasswordPage } from './pages/auth/ResetPasswordPage';
 import { CheckEmailPage } from './pages/auth/CheckEmailPage';
+import { TermsPage } from './pages/legal/TermsPage';
+import { PrivacyPage } from './pages/legal/PrivacyPage';
+import { RefundPage } from './pages/legal/RefundPage';
+import { ContactPage } from './pages/legal/ContactPage';
 import { GuestResumeImport } from './components/account/GuestResumeImport';
 
 // Module scope: one instance for the app's lifetime, so the provider's save
@@ -39,6 +43,10 @@ export function App() {
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/check-email" element={<CheckEmailPage />} />
+          <Route path="/terms" element={<TermsPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/refunds" element={<RefundPage />} />
+          <Route path="/contact" element={<ContactPage />} />
         </Routes>
       </BrowserRouter>
     </ResumeProvider>

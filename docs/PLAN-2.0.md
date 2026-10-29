@@ -97,10 +97,12 @@ per user who uses it all. *Tax/VAT on sales: confirm with your accountant.*
   amount, remaining, expires_at, payment_id?, note, created_at`.
   Index `(user_id, expires_at)`.
 - `credit_entry` (the ledger; append-only) — `id, user_id, batch_id,
-  kind (grant|hold|spend|release|expire), amount (signed), ai_request_id?,
+  kind (grant|hold|release), amount (signed), ai_request_id?,
   payment_id?, created_at`. Every change to a batch writes an entry, so the
-  history always explains the balance.
-- `ai_request` — `id, user_id, action, status (held|succeeded|failed),
+  history always explains the balance. A `hold` is the charge for an action;
+  a `release` gives it back if the action fails. Expiry needs no entry: a
+  batch past `expires_at` simply stops counting.
+- `ai_request` — `id, user_id, action, status (held|succeeded|failed|rejected),
   credits, model, input_tokens, output_tokens, cost_micro_usd, latency_ms,
   error_code, created_at`. **No resume content.**
 - `credit_pack` — `id, credits, validity_days, price_bdt, active`.
@@ -120,8 +122,8 @@ overdraw. A test fires parallel actions at an exact balance to prove it.
 - Guests see the AI buttons too; using one asks them to create a free account
   ("300 free credits").
 - **Server command for support and testing** (no admin panel needed):
-  `npm run credits:grant -- someone@example.com 1000 --days 30 --note "beta tester"`
-  and `npm run credits:show -- someone@example.com`.
+  `npm run credits -- grant someone@example.com 1000 --days 30 --note "beta tester"`
+  and `npm run credits -- show someone@example.com`.
 
 ## 5. AI service (API side)
 
@@ -139,7 +141,7 @@ Every AI endpoint runs the same pipeline:
    structured output schema, timeout 60 s.
 6. Validate the output with zod. Refusal, timeout, invalid output →
    **release** the hold (refund) and return a friendly error.
-7. **Spend** the hold; record tokens and cost in `ai_request`.
+7. Keep the hold as the charge; record tokens and cost in `ai_request`.
 8. Return the suggestion. The resume itself is never modified by the server.
 
 Configuration: `ANTHROPIC_API_KEY`, `AI_MODEL` (default `claude-haiku-5-5`),

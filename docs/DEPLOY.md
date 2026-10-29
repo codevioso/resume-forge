@@ -12,7 +12,7 @@ HTTPS-served site, then covers updates, operations and troubleshooting.
 ```
 internet ──► edge   Caddy: TLS certificates, routing, security headers   :80 :443
                ├── /api/pdf ──► pdf   Node + headless Chromium             :3040
-               ├── /api/*   ──► api   Node: accounts + saved resumes       :3050 ──► db (MySQL 8.4)
+               ├── /api/*   ──► api   Node: accounts, resumes, credits     :3050 ──► db (MySQL 8.4)
                └── /*       ──► web   the built React app, static files    :8080
                                  ▲
                pdf ── /print ────┘   Chromium prints the same page the user previews
@@ -48,9 +48,12 @@ the page makes, and in any case has no network route out.
   browser (localStorage) and sent to the pdf service only for the length of one
   export; neither the request nor the PDF is written to disk or logged.
 - **Account holders:** their account (name, email, a scrypt hash of the
-  password if they use one, sign-in sessions, linked Google identity) and their
-  saved resumes, in MySQL (the `mysql_data` volume). Deleting an account in the
-  app deletes its resumes with it.
+  password if they use one, sign-in sessions, linked Google identity), their
+  saved resumes, their credits (batches with expiry dates and the ledger of
+  every change), a log of AI actions (action, credits, token counts, cost,
+  timing — never the text) and when they agreed to AI processing, in MySQL
+  (the `mysql_data` volume). Deleting an account in the app deletes all of it
+  at once.
 - Caddy's TLS certificates (the `caddy_data` volume) and the nightly database
   backups (`./backups` on the host).
 
@@ -297,6 +300,28 @@ A Google sign-in joins an existing Paperplane account with the same email only
 if that account's email has been confirmed, so no one can pre-register
 someone else's address to capture their Google sign-in.
 
+### 4.7 Business details on the legal pages
+
+The site serves Terms of Service (`/terms`), a Privacy Policy (`/privacy`), a
+Refund & Cancellation Policy (`/refunds`) and a Contact page (`/contact`);
+SSLCommerz checks for all four before approving a merchant account. They are
+drafts: every business detail on them (registered name, trade licence,
+address, support email and phone, effective date) comes from
+`src/constants/business.ts` and ships as a `[bracketed placeholder]`, and the
+texts carry `[Review: …]` notes on the points that are business decisions.
+
+Placeholders and notes are highlighted in amber on the pages themselves, and a
+"Draft" notice shows until every business detail is filled in. Before going
+live: fill in `src/constants/business.ts`, settle each `<Review>` note (and
+the one `<Todo>` on Anthropic's data terms) in `src/pages/legal/` and delete
+it, have the texts reviewed, then rebuild the web image
+(`docker compose up -d --build web`). What is left:
+
+```bash
+grep -n "'\[" src/constants/business.ts
+grep -rn "<Review\|<Todo" src/pages/legal
+```
+
 ---
 
 ## 5. Updating
@@ -370,6 +395,23 @@ docker compose logs --no-log-prefix pdf | jq -c 'select(.level=="error")'
 ```
 
 Docker rotates each container's log at 10 MB, keeping three files.
+
+### Credits
+
+Every account that confirms its email gets the free trial (`TRIAL_CREDITS`,
+default 300, valid `TRIAL_DAYS`, default 15) once. There is no admin panel;
+support grants and inspects credits from the command line:
+
+```bash
+# Add 1000 credits valid 30 days (a new batch; existing credits are untouched).
+docker compose exec api node dist/cli/credits.js grant someone@example.com 1000 --days 30 --note "beta tester"
+# Balance and live batches with their expiry dates.
+docker compose exec api node dist/cli/credits.js show someone@example.com
+```
+
+Credits are spent soonest-expiring first. An AI action that fails gives its
+credits back automatically, so a support grant is only needed for goodwill or
+for a payment that did not deliver credits.
 
 ### Load and readiness
 
@@ -455,6 +497,11 @@ volumes: the **database** (every account and resume) and the certificates
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | unset | Google sign-in. Both or neither. |
 | `MAX_RESUMES_PER_USER` | `50` | Saved resumes per account. |
 | `BACKUP_KEEP_DAYS` | `14` | Days of nightly backups kept in `./backups`. |
+| `TRIAL_CREDITS` | `300` | Free credits for every account that confirms its email, once. `0` switches the trial off. |
+| `TRIAL_DAYS` | `15` | Days the trial credits last. |
+| `AI_ENABLED` | `false` | AI features. Leave off until an Anthropic API key is configured (phase 2); while off, AI actions answer "unavailable" and charge nothing. |
+| `AI_RATE_PER_MINUTE` | `10` | AI actions one user may run per minute. |
+| `AI_DAILY_LIMIT` | `100` | AI actions one user may run per day (refused ones don't count). |
 | `DB_MEMORY_LIMIT` | `768m` | Hard memory cap for the database container. |
 | `PDF_CONCURRENCY` | `2` | Exports rendered at the same time. Each needs ~250 MB RAM. |
 | `PDF_RATE_LIMIT_PER_MINUTE` | `30` | Exports one IP address may request per minute. Over it, users get "Too many exports. Try again shortly." |
@@ -690,7 +737,7 @@ with `$env:RENDER_ORIGIN='http://localhost:5173'; npm start`.
 
 ```bash
 cd pdf-service && npm test                    # service unit + route tests, no browser
-cd api && npm test                            # API: accounts and resumes against MySQL (database paperplane_test, wiped each run)
+cd api && npm test                            # API: accounts, resumes, credits and the AI pipeline against MySQL (database paperplane_test, wiped each run)
 npx playwright install chromium               # once, in the repo root
 npx playwright test                           # e2e, including pagination of every template
 ```

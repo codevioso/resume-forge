@@ -47,7 +47,7 @@ function badRequest(res: Response, error: z.ZodError) {
 }
 
 /** Set by the session middleware before this router runs. */
-export type AuthedRequest = Request & { userId: string };
+export type AuthedRequest = Request & { userId: string; user: { id: string; emailVerified: boolean } };
 
 export function resumesRouter({ db, maxResumesPerUser }: { db: Kysely<Database>; maxResumesPerUser: number }) {
   const router = Router();

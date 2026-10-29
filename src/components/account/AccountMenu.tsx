@@ -4,6 +4,10 @@ import { ChevronRight, Files, LogOut, UserRound } from 'lucide-react';
 import { authClient } from '../../lib/authClient';
 import { Avatar } from './Avatar';
 import { DEFAULT_NEXT, attempt, readSignedInHint, safeNext, useAccount, withNext, type AccountUser } from './authHelpers';
+import { CREDITS_HREF, CreditBalance } from '../credits/CreditBalance';
+import { CreditGlyph } from '../credits/CreditGlyph';
+import { DEFAULT_TRIAL, creditsText, expiryPhrase, formatCredits } from '../credits/format';
+import { useCredits } from '../credits/useCredits';
 import { cn } from '../../utils/cn';
 
 /**
@@ -32,9 +36,11 @@ function useSignOut() {
 
 /**
  * The account control for page headers: "Sign in" when signed out; the user's
- * avatar opening a menu (My resumes, Account, Sign out) when signed in.
+ * avatar opening a menu (credits, My resumes, Account, Sign out) when signed
+ * in. On desktop (lg and up) the credit balance sits next to the avatar.
  *
- * `compact`: icon-only trigger for tight phone app bars.
+ * `compact`: icon-only trigger for tight phone app bars (the balance is then
+ * only inside the menu).
  */
 export function AccountMenu({ compact = false, className }: { compact?: boolean; className?: string }) {
   const { user, isPending } = useAccount();
@@ -64,7 +70,7 @@ export function AccountMenu({ compact = false, className }: { compact?: boolean;
     return <SignedOutLinks links={links} className={className} />;
   }
 
-  return <UserMenu user={user} className={className} />;
+  return <UserMenu user={user} compact={compact} className={className} />;
 }
 
 function SignedOutLinks({
@@ -93,7 +99,7 @@ function SignedOutLinks({
 const ITEM =
   'flex min-h-11 w-full items-center gap-3 rounded-xl px-3 text-left text-[0.9375rem] font-medium text-ink-800 outline-none transition hover:bg-slate-50 focus-visible:bg-slate-100 focus:bg-slate-100';
 
-function UserMenu({ user, className }: { user: AccountUser; className?: string }) {
+function UserMenu({ user, compact, className }: { user: AccountUser; compact: boolean; className?: string }) {
   const [open, setOpen] = useState(false);
   const [focusOnOpen, setFocusOnOpen] = useState<'first' | 'last'>('first');
   const [busy, setBusy] = useState(false);
@@ -106,6 +112,9 @@ function UserMenu({ user, className }: { user: AccountUser; className?: string }
   const signOut = useSignOut();
 
   const items = () => Array.from(menuRef.current?.querySelectorAll<HTMLElement>('[role="menuitem"]') ?? []);
+  /** What the arrow keys move through: the credits row above the menu, then its items. */
+  const stops = () =>
+    Array.from(rootRef.current?.querySelectorAll<HTMLElement>('[data-menu-stop], [role="menuitem"]') ?? []);
 
   // Opening moves focus into the menu.
   useEffect(() => {
@@ -133,7 +142,7 @@ function UserMenu({ user, className }: { user: AccountUser; className?: string }
   };
 
   const onMenuKey = (e: KeyboardEvent) => {
-    const list = items();
+    const list = stops();
     const i = list.indexOf(document.activeElement as HTMLElement);
     const go = (j: number) => {
       e.preventDefault();
@@ -169,7 +178,8 @@ function UserMenu({ user, className }: { user: AccountUser; className?: string }
   const label = user.name?.trim() || user.email;
 
   return (
-    <div ref={rootRef} className={cn('relative flex shrink-0', className)}>
+    <div ref={rootRef} className={cn('relative flex shrink-0 items-center gap-1', className)}>
+      {!compact && <CreditBalance className="hidden lg:inline-flex" />}
       <button
         ref={buttonRef}
         type="button"
@@ -192,7 +202,10 @@ function UserMenu({ user, className }: { user: AccountUser; className?: string }
       </button>
 
       {open && (
-        <div className="absolute top-[calc(100%+0.375rem)] right-0 z-50 w-[min(18rem,calc(100vw-1.5rem))] origin-top-right rounded-2xl border border-slate-200/80 bg-white p-1.5 shadow-lift motion-safe:animate-fade-in">
+        <div
+          className="absolute top-[calc(100%+0.375rem)] right-0 z-50 w-[min(18rem,calc(100vw-1.5rem))] origin-top-right rounded-2xl border border-slate-200/80 bg-white p-1.5 shadow-lift motion-safe:animate-fade-in"
+          onKeyDown={onMenuKey}
+        >
           <div className="flex items-center gap-3 px-3 pt-2.5 pb-3">
             <Avatar user={user} className="size-10 text-sm" />
             <div className="min-w-0 leading-tight">
@@ -200,8 +213,9 @@ function UserMenu({ user, className }: { user: AccountUser; className?: string }
               <p className="truncate text-[13px] text-slate-500">{user.email}</p>
             </div>
           </div>
+          <CreditsRow emailVerified={user.emailVerified} onNavigate={() => setOpen(false)} />
           <div className="mx-1.5 h-px bg-slate-100" aria-hidden="true" />
-          <div ref={menuRef} id={menuId} role="menu" aria-label="Account" onKeyDown={onMenuKey} className="pt-1.5">
+          <div ref={menuRef} id={menuId} role="menu" aria-label="Account" className="pt-1.5">
             <Link to="/resumes" role="menuitem" tabIndex={-1} className={ITEM} onClick={() => setOpen(false)}>
               <Files className="size-[18px] text-slate-500" aria-hidden="true" />
               My resumes
@@ -224,6 +238,57 @@ function UserMenu({ user, className }: { user: AccountUser; className?: string }
         </div>
       )}
     </div>
+  );
+}
+
+/**
+ * The balance inside the account menu (and the landing page's phone sheet):
+ * "Credits · 300 expire 13 Nov · 300", linking to the account page's credits.
+ * Reached with the arrow keys like the menu's items (`data-menu-stop`).
+ */
+function CreditsRow({
+  emailVerified,
+  onNavigate,
+  className,
+  inMenu = true,
+}: {
+  emailVerified: boolean;
+  onNavigate: () => void;
+  className?: string;
+  inMenu?: boolean;
+}) {
+  const { summary, status } = useCredits();
+  if (!summary) {
+    if (status !== 'loading') return null;
+    return <div className={cn('mx-1.5 mb-1.5 h-14 rounded-xl bg-slate-50 motion-safe:animate-pulse', className)} aria-hidden="true" />;
+  }
+
+  const { balance } = summary;
+  const detail =
+    expiryPhrase(summary) ??
+    (emailVerified ? 'None right now' : `Confirm your email to get ${formatCredits(summary.trial?.credits ?? DEFAULT_TRIAL.credits)} free`);
+
+  return (
+    <Link
+      to={CREDITS_HREF}
+      onClick={onNavigate}
+      tabIndex={inMenu ? -1 : undefined}
+      data-menu-stop={inMenu ? '' : undefined}
+      data-credits-row={balance}
+      aria-label={`Credits: ${creditsText(balance)}. ${detail}`}
+      className={cn(
+        'mx-1.5 mb-1.5 flex min-h-14 items-center gap-3 rounded-xl bg-gradient-to-r from-aqua-50 to-mint-50/70 py-2 pr-2.5 pl-2.5 ring-1 ring-aqua-100 transition ring-inset outline-none hover:from-aqua-100/70 hover:to-mint-100/60 focus-visible:ring-2 focus-visible:ring-aqua-700 active:scale-[0.99]',
+        className,
+      )}
+    >
+      <CreditGlyph className="size-8" muted={balance === 0} />
+      <span className="min-w-0 flex-1 leading-tight">
+        <span className="block text-[0.9375rem] font-semibold text-ink-900">Credits</span>
+        <span className="mt-0.5 block text-[13px] leading-snug text-slate-600">{detail}</span>
+      </span>
+      <span className="text-base font-bold text-ink-900 tabular-nums">{formatCredits(balance)}</span>
+      <ChevronRight className="-ml-1 size-4 shrink-0 text-slate-400" aria-hidden="true" />
+    </Link>
   );
 }
 
@@ -267,6 +332,7 @@ export function AccountSheetSection({ onNavigate }: { onNavigate: () => void }) 
         </span>
         <ChevronRight className="size-5 text-slate-400" aria-hidden="true" />
       </Link>
+      <CreditsRow emailVerified={user.emailVerified} onNavigate={onNavigate} inMenu={false} className="mx-0 mt-1.5 mb-0 rounded-2xl" />
       <div className="mt-1.5 grid grid-cols-2 gap-1.5">
         <Link to="/resumes" onClick={onNavigate} className="btn min-h-12 bg-white text-[0.9375rem] text-ink-900 ring-1 ring-slate-200 hover:bg-slate-50">
           <Files className="size-[18px] text-aqua-700" aria-hidden="true" />

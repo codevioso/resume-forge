@@ -1,110 +1,14 @@
 import assert from 'node:assert/strict';
 import type { AddressInfo } from 'node:net';
-import { after, before, describe, it } from 'node:test';
-import { sql } from 'kysely';
+import { describe, it } from 'node:test';
 import { createApp } from '../src/app.js';
 import { createAuth } from '../src/auth.js';
-import { loadConfig } from '../src/config.js';
-import { createDatabase } from '../src/db.js';
-import { memoryMailer } from '../src/mailer.js';
-import { migrate } from '../src/migrate.js';
+import { PUBLIC_URL, useTestApi } from './helpers.js';
 
-/**
- * The API end to end: real routes, real Better Auth, a real MySQL database
- * (TEST_DATABASE_URL, default Laragon's paperplane_test, wiped first), and an
- * in-memory mailer so emailed links can be followed like a user would.
- */
+/** Accounts and saved resumes, end to end (see helpers.ts for the setup). */
 
-const PUBLIC_URL = 'http://localhost:5173';
-const config = loadConfig({
-  NODE_ENV: 'test',
-  PUBLIC_URL,
-  AUTH_SECRET: 'test-secret-test-secret-test-secret-0123456789',
-  DATABASE_URL: process.env.TEST_DATABASE_URL ?? 'mysql://root@127.0.0.1:3306/paperplane_test',
-  SMTP_URL: 'smtp://unused.invalid:25',
-  EMAIL_FROM: 'Paperplane <test@paperplane.test>',
-  MAX_RESUMES_PER_USER: '3',
-});
-const { db } = createDatabase(config.databaseUrl);
-const mailer = memoryMailer();
-const auth = createAuth({ config, db, mailer });
-let base = '';
-let close: () => Promise<void>;
-
-before(async () => {
-  // A clean schema every run.
-  await sql`SET FOREIGN_KEY_CHECKS = 0`.execute(db);
-  const { rows } = await sql<{ t: string }>`
-    SELECT TABLE_NAME AS t FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE()`.execute(db);
-  for (const { t } of rows) await sql`DROP TABLE ${sql.id(t)}`.execute(db);
-  await sql`SET FOREIGN_KEY_CHECKS = 1`.execute(db);
-  await migrate(auth, db);
-
-  const server = createApp({ config, auth, db }).listen(0);
-  await new Promise((r) => server.once('listening', r));
-  base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
-  close = () => new Promise((r) => server.close(() => r()));
-});
-
-after(async () => {
-  await close?.();
-  await db.destroy();
-});
-
-// --- a tiny browser: carries cookies and sends the site's Origin -------------
-
-class Client {
-  cookies = new Map<string, string>();
-
-  async req(method: string, path: string, body?: unknown, { origin = PUBLIC_URL }: { origin?: string } = {}) {
-    const headers: Record<string, string> = { origin };
-    if (body !== undefined) headers['content-type'] = 'application/json';
-    if (this.cookies.size) headers.cookie = [...this.cookies].map(([k, v]) => `${k}=${v}`).join('; ');
-    const res = await fetch(base + path.replace(PUBLIC_URL, ''), {
-      method,
-      headers,
-      body: body === undefined ? undefined : JSON.stringify(body),
-      redirect: 'manual',
-    });
-    for (const c of res.headers.getSetCookie()) {
-      const [pair] = c.split(';');
-      const i = pair.indexOf('=');
-      const name = pair.slice(0, i);
-      const value = pair.slice(i + 1);
-      if (value === '' || /max-age=0/i.test(c)) this.cookies.delete(name);
-      else this.cookies.set(name, value);
-    }
-    const text = await res.text();
-    let json: any = null;
-    try {
-      json = text ? JSON.parse(text) : null;
-    } catch {
-      /* not JSON */
-    }
-    return { status: res.status, json, location: res.headers.get('location') };
-  }
-}
-
-/** The link in the last email sent to `to`. */
-function lastLink(to: string): string {
-  const mail = [...mailer.sent].reverse().find((m) => m.to === to);
-  assert.ok(mail, `no email sent to ${to}`);
-  const url = mail.text.match(/https?:\/\/\S+/)?.[0];
-  assert.ok(url, 'email has no link');
-  return url;
-}
-
-let n = 0;
-async function signedInUser(): Promise<{ client: Client; email: string; password: string }> {
-  const client = new Client();
-  const email = `user${++n}-${Date.now()}@example.com`;
-  const password = 'correct horse battery';
-  const signUp = await client.req('POST', '/api/auth/sign-up/email', { email, password, name: 'Test User' });
-  assert.equal(signUp.status, 200, JSON.stringify(signUp.json));
-  const verify = await client.req('GET', lastLink(email));
-  assert.ok([200, 302].includes(verify.status), `verify status ${verify.status}`);
-  return { client, email, password };
-}
+const api = useTestApi({ AI_ENABLED: 'false' });
+const { config, db, mailer, Client, lastLink, signedInUser } = api;
 
 const resumeData = {
   personalInfo: { fullName: 'Amara Okonkwo', title: 'Engineer', email: 'amara@example.com' },
@@ -190,7 +94,7 @@ describe('rate limits', () => {
   it('never limit the session check, but do limit sign-in attempts', async () => {
     // The suite runs with limits off; this builds the production setup.
     const limited = createAuth({ config: { ...config, rateLimit: true }, db, mailer });
-    const server = createApp({ config, auth: limited, db }).listen(0);
+    const server = createApp({ config, auth: limited, db, credits: api.credits, ai: api.ai }).listen(0);
     await new Promise((r) => server.once('listening', r));
     const url = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
     try {

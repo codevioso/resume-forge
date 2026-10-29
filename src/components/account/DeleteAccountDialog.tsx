@@ -156,6 +156,7 @@ export function DeleteAccountDialog({
             This permanently deletes your Paperplane account and <strong className="font-semibold text-ink-900">{what}</strong>.
             It can&rsquo;t be undone.
           </p>
+          <p className="text-sm">Any credits left on the account are lost with it.</p>
           {resumeCount !== 0 && <p className="text-sm">Want to keep a resume? Open it and download the PDF first.</p>}
         </div>
 
